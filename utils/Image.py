@@ -52,8 +52,3 @@ class CImage:
         qim = QImage(data, im.size[0], im.size[1], QImage.Format_ARGB32)
         pixmap = QPixmap.fromImage(qim)
         return pixmap
-
-
-im = CImage()
-im.read_image(r"C:\Users\jbtok\Desktop\im1.jpg")
-im.save_image(r"C:\Users\jbtok\Desktop\im2.jpg")
