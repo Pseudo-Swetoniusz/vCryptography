@@ -16,7 +16,6 @@ class CImage:
         self.width, self.height = self.original_image.size
         self.image_matrix = np.asarray(self.original_image)
         self.update_image()
-        self.original_image.show()
 
     def get_width(self):
         return self.width
