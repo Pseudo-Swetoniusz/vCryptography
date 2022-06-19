@@ -1,5 +1,7 @@
 from sys import path
 from typing import List
+
+from numpy import uint8
 path.append(".")
 from utils.BinaryData import *
 from utils.Image import *
@@ -8,7 +10,13 @@ from random import SystemRandom
 from itertools import combinations, permutations
 from copy import deepcopy
 
+# FIX
 # m0,m1?
+
+# BLACK = [0,0,0]
+# OTHER = [255,255,255]
+BLACK = list(map(uint8, ['0','0','0']))
+OTHER = list(map(uint8, ['255','255','255']))
 
 class VC():
     def __init__(self,n: int, k: int):
@@ -26,8 +34,9 @@ class VC():
         self.setImage(img)
         img = CImage()
         img.width, img.height = self.image.get_width()*self.m0, self.image.get_height()*self.m1
-        img.image_matrix = [[(0,0,0) for j in range(img.width)] for i in range(img.height)]
+        img.image_matrix = np.asarray([[BLACK for j in range(img.width)] for i in range(img.height)])
         self.resImages = [deepcopy(img) for i in range(self.n)]
+        print("--encrypt")
         return self.encrypt()
 
     def setImage(self, img: CImage):
@@ -53,22 +62,19 @@ class VC():
             else:
                 odd.append(c)
         e = [i for i in range(self.k)]
-        S0, S1 = [[(1,1,1) for j in range(self.m)] for i in range(self.k)],[[(1,1,1) for j in range(self.m)] for i in range(self.k)]
+        S0, S1 = [[OTHER for j in range(self.m)] for i in range(self.k)],[[OTHER for j in range(self.m)] for i in range(self.k)]
         for i in range(self.k):
             for j in range(self.m):
                 if(e[i] in even[j]):
-                    S0[i][j] = (0,0,0)
+                    S0[i][j] = BLACK
                 if(e[i] in odd[j]):
-                    S1[i][j] = (0,0,0)
+                    S1[i][j] = BLACK
         perms = permutations([i for i in range(self.m)])
         for permutation in perms:
             self.C0.append(self.permute(S0, permutation))
             self.C1.append(self.permute(S1, permutation))
-        # print(f"C0 = \n{self.C0}\nC1 = \n{self.C1}")
-        # print("----------")
 
     def getRandomShares(self, i, j):
-        # print(img.image_matrix)
         rand = SystemRandom()
         tmp = rand.randint(0,self.r-1)
         if(self.isBlack(self.image[i,j])):
@@ -76,7 +82,7 @@ class VC():
         return self.C0[tmp]
 
     def isBlack(self, pixel):
-        return pixel[0]==0 and pixel[1]==0 and pixel[2]==0
+        return pixel[0]==BLACK[0] and pixel[1]==BLACK[1] and pixel[2]==BLACK[2]
 
     def buildShares(self, i: int, j: int):
         #maybe m0 m1?
@@ -91,6 +97,12 @@ class VC():
         for i in range(self.image.height):
             for j in range(self.image.width):
                 self.buildShares(i,j)
+        print("--shares built")
+        for image in self.resImages:
+            # image.image_matrix = np.asarray(image.image_matrix)
+            # image.image_matrix = np.asarray((image.image_matrix).astype(np.uint8))
+            image.update_image()
+        print("--res images ready")
         return self.resImages
 
     def combine(self, img1: CImage, img2: CImage):
@@ -98,31 +110,18 @@ class VC():
         res = deepcopy(img1)
         for i in range(img1.height):
             for j in range(img1.width):
-                if(img1[i,j] == (0,0,0) or img2[i,j] == (0,0,0)):
-                    res.image_matrix[i][j] = (0,0,0)
+                # if(img1[i,j] == BLACK or img2[i,j] == BLACK):
+                if(self.isBlack(img1[i,j]) or self.isBlack(img2[i,j])):
+                    res.image_matrix[i][j] = BLACK
                 else:
-                    res.image_matrix[i][j] = (1,1,1)
+                    res.image_matrix[i][j] = OTHER
         return res
 
     def combineShares(self):
         res = self.resImages[0]
         for i in range(1,len(self.resImages)):
             res = self.combine(res, self.resImages[i])
+        res.update_image()
         return res
 
 
-vc = VC(3,3)
-array = [   [(0,0,0),(1,1,1),(1,1,1)],
-            [(0,0,0),(0,0,0),(0,0,0)],
-            [(1,1,1),(0,0,0),(1,1,1)] ]
-img = CImage()
-img.update_matrix(array)
-img.width, img.height = 3,3
-# print(img.image_matrix)
-shares = vc(img)
-print("shares:")
-shares = [share.image_matrix for share in shares]
-# print(shares[0])
-# img.show_image()
-decryptedImg = vc.combineShares()
-print(decryptedImg.image_matrix)
