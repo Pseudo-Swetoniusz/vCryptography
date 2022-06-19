@@ -16,20 +16,23 @@ def test_simple():
     img = CImage()
     img.update_matrix(array)
     img.width, img.height = 3,3
+    img.update_image()
+
     shares = vc(img)
-    # shares[0].show_image()
     decryptedImg = vc.combineShares()
     decryptedImg.show_image()
 
-def test_image():
+def test_image(filename = "really-big-picture.jpg"):
     vc = VC(3,3)
     print("--init")
-    path = "D:\\Rok_Akademicki_21-22\\zz_pictures\\black-white-birds.jpg"
+    path = f".\\algorithm\\k-images\\test_img\\{filename}"
     img = CImage()
     img.read_image(path)
     img.show_image()
     print("--run")
     shares = vc(img)
+    for share in shares:
+        share.show_image()
     print("--shares")
     decryptedImg = vc.combineShares()
     print("--combined")
@@ -38,7 +41,7 @@ def test_image():
 
 
 # test_simple()
-test_image()
+test_image("penta.png")
 
 # vc = VC(3,3)
 # test_permute(3,3,vc)

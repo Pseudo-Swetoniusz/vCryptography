@@ -1,7 +1,7 @@
 from sys import path
 from typing import List
 
-from numpy import uint8
+from numpy import uint8, uint16
 path.append(".")
 from utils.BinaryData import *
 from utils.Image import *
@@ -15,8 +15,11 @@ from copy import deepcopy
 
 # BLACK = [0,0,0]
 # OTHER = [255,255,255]
-BLACK = list(map(uint8, ['0','0','0']))
-OTHER = list(map(uint8, ['255','255','255']))
+L = 255
+TYPE  =uint8
+BLACK = list(map(TYPE, ['0','0','0']))
+OTHER = list(map(TYPE, ['255','255','255']))
+
 
 class VC():
     def __init__(self,n: int, k: int):
@@ -28,7 +31,8 @@ class VC():
         self.r = factorial(2**(self.k-1))
         self.C0, self.C1 = [],[]
         self.getCMatrices()
-        self.m0,self.m1 = self.m,1
+        self.m0 = 2**((self.k-1)//2)
+        self.m1 = self.m//self.m0
 
     def __call__(self, img: CImage):
         self.setImage(img)
@@ -38,6 +42,13 @@ class VC():
         self.resImages = [deepcopy(img) for i in range(self.n)]
         print("--encrypt")
         return self.encrypt()
+    
+    def add(self,p1,p2):
+        # x,y,z = p1[0]*p2[0]//L, p1[1]*p2[1]//L, p1[2]*p2[2]//L
+        # return [uint16(x),uint16(y), uint16(z)]
+        if(self.isBlack(p1) or self.isBlack(p2)):
+            return BLACK
+        return OTHER
 
     def setImage(self, img: CImage):
         self.image = img
@@ -85,13 +96,13 @@ class VC():
         return pixel[0]==BLACK[0] and pixel[1]==BLACK[1] and pixel[2]==BLACK[2]
 
     def buildShares(self, i: int, j: int):
-        #maybe m0 m1?
-        newI, newJ = i,j*self.m
+        newI, newJ = i*self.m0,j*self.m1
         shares = self.getRandomShares(i, j)
         for num in range(len(self.resImages)):
             current = self.resImages[num]
-            for idx in range(self.m):
-                current.image_matrix[newI][newJ+idx] = shares[num][idx]
+            for idxI in range(self.m0):
+                for idxJ in range(self.m1):
+                    current.image_matrix[newI+idxI][newJ+idxJ] = shares[num][(idxI+1)*idxJ]
 
     def encrypt(self):
         for i in range(self.image.height):
@@ -99,8 +110,6 @@ class VC():
                 self.buildShares(i,j)
         print("--shares built")
         for image in self.resImages:
-            # image.image_matrix = np.asarray(image.image_matrix)
-            # image.image_matrix = np.asarray((image.image_matrix).astype(np.uint8))
             image.update_image()
         print("--res images ready")
         return self.resImages
@@ -110,11 +119,11 @@ class VC():
         res = deepcopy(img1)
         for i in range(img1.height):
             for j in range(img1.width):
-                # if(img1[i,j] == BLACK or img2[i,j] == BLACK):
-                if(self.isBlack(img1[i,j]) or self.isBlack(img2[i,j])):
-                    res.image_matrix[i][j] = BLACK
-                else:
-                    res.image_matrix[i][j] = OTHER
+                res.image_matrix[i][j] = self.add(img1[i,j],img2[i,j])
+                # if(self.isBlack(img1[i,j]) or self.isBlack(img2[i,j])):
+                #     res.image_matrix[i][j] = BLACK
+                # else:
+                #     res.image_matrix[i][j] = OTHER
         return res
 
     def combineShares(self):
