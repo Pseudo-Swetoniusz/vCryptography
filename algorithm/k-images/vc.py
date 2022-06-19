@@ -10,11 +10,6 @@ from random import SystemRandom
 from itertools import combinations, permutations
 from copy import deepcopy
 
-# FIX
-# m0,m1?
-
-# BLACK = [0,0,0]
-# OTHER = [255,255,255]
 L = 255
 TYPE  =uint8
 BLACK = list(map(TYPE, ['0','0','0']))
@@ -120,10 +115,6 @@ class VC():
         for i in range(img1.height):
             for j in range(img1.width):
                 res.image_matrix[i][j] = self.add(img1[i,j],img2[i,j])
-                # if(self.isBlack(img1[i,j]) or self.isBlack(img2[i,j])):
-                #     res.image_matrix[i][j] = BLACK
-                # else:
-                #     res.image_matrix[i][j] = OTHER
         return res
 
     def combineShares(self):
