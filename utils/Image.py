@@ -51,3 +51,7 @@ class CImage:
         qim = QImage(data, im.size[0], im.size[1], QImage.Format_ARGB32)
         pixmap = QPixmap.fromImage(qim)
         return pixmap
+
+    def __getitem__(self, idx):
+        i,j = idx
+        return self.image_matrix[i][j]
