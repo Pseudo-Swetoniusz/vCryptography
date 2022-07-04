@@ -29,6 +29,10 @@ class CImage:
     def update_image(self):
         self.new_image = Image.fromarray(self.image_matrix)
 
+    def set_image(self):
+        self.original_image = Image.fromarray(self.image_matrix)
+        self.width, self.height = self.original_image.size
+
     def save_image(self, file_path):
         self.update_image()
         self.new_image.save(file_path)
