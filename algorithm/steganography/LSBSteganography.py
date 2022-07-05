@@ -103,26 +103,3 @@ class LSBSteganography:
                 btext += val_b[7]
         im = self.BD.binary_to_image(btext)
         return im
-
-
-lsb = LSBSteganography(r"C:\Users\jbtok\Desktop\studia_szkola\studia\semestr6\praca\vCryptography\vCryptography"
-                       r"\images\ex1.png")
-lsb.load_text("Zażółć gęślą jaźń")
-lsb.hide_text("simple")
-lsb.save_image(r"C:\Users\jbtok\Desktop\studia_szkola\studia\semestr6\praca\vCryptography"
-               r"\vCryptography\images\ex2.png")
-
-lsb1 = LSBSteganography(r"C:\Users\jbtok\Desktop\studia_szkola\studia\semestr6\praca\vCryptography\vCryptography"
-                        r"\images\ex2.png")
-print(lsb1.read_text())
-
-lsb2 = LSBSteganography(r"C:\Users\jbtok\Desktop\studia_szkola\studia\semestr6\praca\vCryptography\vCryptography"
-                        r"\images\ex1.png")
-lsb2.hide_image(r"C:\Users\jbtok\Desktop\studia_szkola\studia\semestr6\praca\vCryptography\vCryptography"
-                r"\images\im1.png")
-lsb2.save_image(r"C:\Users\jbtok\Desktop\studia_szkola\studia\semestr6\praca\vCryptography\vCryptography"
-                r"\images\ex3.png")
-lsb3 = LSBSteganography(r"C:\Users\jbtok\Desktop\studia_szkola\studia\semestr6\praca\vCryptography\vCryptography"
-                        r"\images\ex3.png")
-im = lsb3.read_image()
-im.show_image()
