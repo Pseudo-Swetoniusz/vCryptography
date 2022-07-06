@@ -48,14 +48,14 @@ class ButtonFrame(QWidget):
         button_kimages.setMinimumHeight(60)
         button_kimages.setMaximumHeight(100)
         button_kimages.setStyleSheet("QPushButton {color:#9d9d9d; letter-spacing:1px; background:#414141; "
-                                     "text-transform:uppercase;font-size:15px;} "
+                                     "text-transform:uppercase;font-size:18px;} "
                                      "QPushButton::pressed {background:#515151;}")
         button_kimages.clicked.connect(self.push_kimages)
         button_steganography = QPushButton("steganography")
         button_steganography.setMinimumHeight(60)
         button_steganography.setMaximumHeight(100)
         button_steganography.setStyleSheet("QPushButton {color:#9d9d9d; letter-spacing:1px; background:#414141; "
-                                           "text-transform:uppercase;font-size:15px;} "
+                                           "text-transform:uppercase;font-size:18px;} "
                                            "QPushButton::pressed {background:#515151;}")
         button_steganography.clicked.connect(self.push_stegano)
         layout.addWidget(button_kimages)
