@@ -35,7 +35,7 @@ class VC():
         img.width, img.height = self.image.get_width()*self.m0, self.image.get_height()*self.m1
         img.image_matrix = np.asarray([[BLACK for j in range(img.width)] for i in range(img.height)])
         self.resImages = [deepcopy(img) for i in range(self.n)]
-        print("--encrypt")
+        # print("--encrypt")
         return self.encrypt()
     
     def add(self,p1,p2):
@@ -103,10 +103,10 @@ class VC():
         for i in range(self.image.height):
             for j in range(self.image.width):
                 self.buildShares(i,j)
-        print("--shares built")
+        # print("--shares built")
         for image in self.resImages:
             image.update_image()
-        print("--res images ready")
+        # print("--res images ready")
         return self.resImages
 
     def combine(self, img1: CImage, img2: CImage):
