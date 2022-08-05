@@ -7,6 +7,8 @@ from gui import MainMenuWindow
 
 from utils.Image import CImage
 
+# fix bugs, damage control, make it look better?
+
 class KImagesFrame(QFrame):
     def __init__(self, parent: MainMenuWindow):
         super().__init__(parent)
