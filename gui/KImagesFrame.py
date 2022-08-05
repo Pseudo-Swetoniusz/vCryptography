@@ -107,6 +107,7 @@ class ImagesWidget(QWidget):
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignTop)
+        
         height = 800
 
         self.original = QLabel(self)
@@ -140,6 +141,7 @@ class MenuWidget(QWidget):
         self.startButton = None
         self.shareWidget = None
         self.shareImage = None
+
         self.shares = None
         self.shareIndex = 0
         self.decryptedImg = None
@@ -150,11 +152,11 @@ class MenuWidget(QWidget):
 
     def initUI(self):
         self.setMinimumWidth(self.width)
-        self.setStyleSheet("background:#3a3a3a; border: 3px solid #323232;")
+        self.setStyleSheet("background:#3a3a3a; border: 3px solid #323232;color:#9d9d9d;font-size:20px;")
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+        
         layout = QVBoxLayout()
-        # layout.setAlignment(Qt.AlignTop)
-        layout.setAlignment(Qt.AlignHCenter)
+        # layout.setAlignment(Qt.AlignHCenter)
 
         height = 50
         self.variableInput = QTextEdit(self)
@@ -171,7 +173,7 @@ class MenuWidget(QWidget):
         self.imageButton.setMaximumHeight(height)
         self.imageButton.setMinimumWidth(3*height)
         self.imageButton.setMaximumWidth(3*height)
-        self.imageButton.setText("Load")
+        self.imageButton.setText("Load Original")
         self.imageButton.clicked.connect(self.loadImage)
         self.startButton = QPushButton(self)
         self.startButton.setMinimumHeight(height)
@@ -187,11 +189,11 @@ class MenuWidget(QWidget):
         self.shareImage.setAlignment(Qt.AlignCenter)
         
         layout.addWidget(self.textInputLabel)
-        layout.addWidget(self.imageButton)
+        layout.addWidget(self.imageButton, alignment=Qt.AlignHCenter)
         layout.addWidget(self.variableInput)
-        layout.addWidget(self.startButton)
-        layout.addWidget(self.shareWidget)
-        layout.addWidget(self.shareImage)
+        layout.addWidget(self.startButton, alignment=Qt.AlignHCenter)
+        layout.addWidget(self.shareWidget, alignment=Qt.AlignHCenter)
+        layout.addWidget(self.shareImage, alignment=Qt.AlignHCenter)
 
         self.setLayout(layout)
 
@@ -286,7 +288,7 @@ class ShareWidget(QWidget):
         self.prevButton.clicked.connect(self.parent.setPrev)
         layout.addWidget(self.prevButton)
         
-        self.shareLabel = QLabel("Label", self)
+        self.shareLabel = QLabel("", self)
         self.shareLabel.setAlignment(Qt.AlignCenter)
         self.shareLabel.setStyleSheet("background:#3a3a3a; border: none")
         layout.addWidget(self.shareLabel)
