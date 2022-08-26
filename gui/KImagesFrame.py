@@ -221,6 +221,7 @@ class MenuWidget(QWidget):
             path = self.parent.getOriginalPath()
             img = CImage()
             img.read_image(path)
+            print(n,img.get_pixmap())
             self.shares = vc(img)
             self.decryptedImg = vc.combineShares()
             self.parent.setResult(self.decryptedImg.get_pixmap())

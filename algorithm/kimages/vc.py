@@ -11,9 +11,11 @@ from itertools import combinations, permutations
 from copy import deepcopy
 
 L = 255
-TYPE  =uint8
+TYPE  = uint8
 BLACK = list(map(TYPE, ['0','0','0']))
 OTHER = list(map(TYPE, ['255','255','255']))
+
+t = 1
 
 
 class VC():
@@ -26,8 +28,12 @@ class VC():
         self.r = factorial(2**(self.k-1))
         self.C0, self.C1 = [],[]
         self.getCMatrices()
-        self.m0 = 2**((self.k-1)//2)
-        self.m1 = self.m//self.m0
+        # self.m0 = 2**((self.k-1)//2)
+        # self.m1 = self.m//self.m0
+        # self.m0, self.m1 = self.max_min(self.m0, self.m1)
+        self.m0 = self.m
+        self.m1 = 1
+        
 
     def __call__(self, img: CImage):
         self.setImage(img)
@@ -44,6 +50,12 @@ class VC():
         if(self.isBlack(p1) or self.isBlack(p2)):
             return BLACK
         return OTHER
+    
+    def max_min(self,m,n):
+        m = m+n
+        n = m-n
+        m = m-n
+        return m,n
 
     def setImage(self, img: CImage):
         self.image = img
@@ -91,12 +103,13 @@ class VC():
         return pixel[0]==BLACK[0] and pixel[1]==BLACK[1] and pixel[2]==BLACK[2]
 
     def buildShares(self, i: int, j: int):
-        newI, newJ = i*self.m0,j*self.m1
+        newI, newJ = i*self.m1,j*self.m0
         shares = self.getRandomShares(i, j)
         for num in range(len(self.resImages)):
             current = self.resImages[num]
-            for idxI in range(self.m0):
-                for idxJ in range(self.m1):
+            # print(self.m0, self.m1, "::", len(current.image_matrix), len(current.image_matrix[0]))
+            for idxI in range(self.m1):
+                for idxJ in range(self.m0):
                     current.image_matrix[newI+idxI][newJ+idxJ] = shares[num][(idxI+1)*idxJ]
 
     def encrypt(self):
