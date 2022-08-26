@@ -28,11 +28,11 @@ class VC():
         self.r = factorial(2**(self.k-1))
         self.C0, self.C1 = [],[]
         self.getCMatrices()
-        # self.m0 = 2**((self.k-1)//2)
-        # self.m1 = self.m//self.m0
-        # self.m0, self.m1 = self.max_min(self.m0, self.m1)
-        self.m0 = self.m
-        self.m1 = 1
+        self.m0 = 2**((self.k-1)//2)
+        self.m1 = self.m//self.m0
+        self.m0, self.m1 = self.max_min(self.m0, self.m1)
+        # self.m0 = self.m
+        # self.m1 = 1
         
 
     def __call__(self, img: CImage):
