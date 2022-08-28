@@ -23,12 +23,13 @@ def test_simple():
     decryptedImg.show_image()
 
 def test_image(filename = "really-big-picture.jpg"):
-    vc = VC(3,3)
+    vc = VC(4,4)
     print("--init")
-    path = f".\\algorithm\\k-images\\test_img\\{filename}"
+    # path = f".\\algorithm\\k-images\\test_img\\{filename}"
+    path = f"D:\\Rok_Akademicki_21-22\\Praca_Inzynierska\\Official_Repo\\vCryptography\\algorithm\\kimages\\test_img\\{filename}"
     img = CImage()
     img.read_image(path)
-    img.show_image()
+    # img.show_image()
     print("--run")
     shares = vc(img)
     for share in shares:
