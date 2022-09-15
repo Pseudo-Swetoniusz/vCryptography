@@ -23,7 +23,7 @@ def test_simple():
     decryptedImg.show_image()
 
 def test_image(filename = "really-big-picture.jpg"):
-    vc = VC(4,4)
+    vc = VC(3,3)
     print("--init")
     # path = f".\\algorithm\\k-images\\test_img\\{filename}"
     path = f"D:\\Rok_Akademicki_21-22\\Praca_Inzynierska\\Official_Repo\\vCryptography\\algorithm\\kimages\\test_img\\{filename}"
@@ -42,7 +42,9 @@ def test_image(filename = "really-big-picture.jpg"):
 
 
 # test_simple()
+
 test_image("penta.png")
 
 # vc = VC(3,3)
 # test_permute(3,3,vc)
+
