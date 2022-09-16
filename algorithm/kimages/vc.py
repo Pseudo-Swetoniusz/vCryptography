@@ -17,7 +17,18 @@ LIGHT = 0
 
 TYPE  = uint8
 
-class Colour(Enum):
+# class Colour(Enum):
+#     BLACK = list(map(TYPE, ['0','0','0']))
+#     WHITE = list(map(TYPE, ['255','255','255']))
+#     RED = list(map(TYPE, ['255','0','0']))
+#     GREEN = list(map(TYPE, ['0','255','0']))
+#     BLUE = list(map(TYPE, ['0','0','255']))
+#     CYAN = list(map(TYPE, ['0','255','255']))
+#     MAGENTA = list(map(TYPE, ['255','0','255']))
+#     YELLOW = list(map(TYPE, ['255','255','0']))
+
+
+class VC():
     BLACK = list(map(TYPE, ['0','0','0']))
     WHITE = list(map(TYPE, ['255','255','255']))
     RED = list(map(TYPE, ['255','0','0']))
@@ -27,19 +38,17 @@ class Colour(Enum):
     MAGENTA = list(map(TYPE, ['255','0','255']))
     YELLOW = list(map(TYPE, ['255','255','0']))
 
-translation = {
-    (LIGHT, LIGHT, LIGHT): Colour.WHITE, 
-    (DARK, LIGHT, LIGHT): Colour.YELLOW,
-    (LIGHT, DARK, LIGHT): Colour.MAGENTA, 
-    (LIGHT, LIGHT, DARK): Colour.CYAN, 
-    (LIGHT, DARK, DARK): Colour.RED, 
-    (DARK, LIGHT, DARK): Colour.GREEN, 
-    (DARK, DARK, LIGHT): Colour.BLUE, 
-    (DARK, DARK, DARK): Colour.BLACK, 
-}
+    translation = {
+        (LIGHT, LIGHT, LIGHT): WHITE, 
+        (DARK, LIGHT, LIGHT): YELLOW,
+        (LIGHT, DARK, LIGHT): MAGENTA, 
+        (LIGHT, LIGHT, DARK): CYAN, 
+        (LIGHT, DARK, DARK): RED, 
+        (DARK, LIGHT, DARK): GREEN, 
+        (DARK, DARK, LIGHT): BLUE, 
+        (DARK, DARK, DARK): BLACK
+    }
 
-
-class VC():
     def __init__(self,n: int, k: int):
         self.n = n #liczba podobrazów
         self.k = k # liczba podobrazów koniecznych do odkrycia sekretu
@@ -62,17 +71,12 @@ class VC():
         img = CImage()
         img.width, img.height = self.image.get_width()*self.m0, self.image.get_height()*self.m1
         # img.image_matrix = np.asarray([[DARK for j in range(img.width)] for i in range(img.height)])
-        img.image_matrix = np.asarray([[Colour.BLACK for j in range(img.width)] for i in range(img.height)])
+        img.image_matrix = np.asarray([[self.BLACK for j in range(img.width)] for i in range(img.height)])
         self.resImages = [deepcopy(img) for i in range(self.n)]
         return self.encrypt()
-    
-    def add(self,p1,p2):
-        if(self.isBlack(p1) or self.isBlack(p2)):
-            return DARK
-        return LIGHT
 
     def add_colour(self, p1, p2):
-        x,y,z = p1[0]*p2[0], p1[1]*p2[1], p1[2]*p2[2] #L = 1
+        x,y,z = ((int(p1[0])*int(p2[0]))//255), ((int(p1[1])*int(p2[1]))//255), ((int(p1[2])*int(p2[2]))//255)
         return [uint16(x),uint16(y), uint16(z)]
     
     def max_min(self,m,n):
@@ -124,8 +128,8 @@ class VC():
         colourS1 = [[] for i in range(self.k)]
         for i in range(self.k):
             for j in range(0,self.m+self.extension,3):
-                colourS0[i].append(translation[(S0[i][j],S0[i][j+1],S0[i][j+2])])
-                colourS1[i].append(translation[(S1[i][j],S1[i][j+1],S1[i][j+2])])
+                colourS0[i].append(self.translation[(S0[i][j],S0[i][j+1],S0[i][j+2])])
+                colourS1[i].append(self.translation[(S1[i][j],S1[i][j+1],S1[i][j+2])])
 
 
         #end convert matrices
