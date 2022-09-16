@@ -32,11 +32,13 @@ def test_image(filename = "really-big-picture.jpg"):
     # img.show_image()
     print("--run")
     shares = vc(img)
-    for share in shares:
-        share.show_image()
+    # print shares
+    # for share in shares:
+    #     share.show_image()
     print("--shares")
     decryptedImg = vc.combineShares()
     print("--combined")
+    #peint result image
     # decryptedImg.show_image()
     
 

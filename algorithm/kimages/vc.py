@@ -64,20 +64,18 @@ class VC():
         # self.m0, self.m1 = self.max_min(self.m0, self.m1)
         self.m0 = self.m
         self.m1 = 1
-        
 
     def __call__(self, img: CImage):
         self.setImage(img)
         img = CImage()
         img.width, img.height = self.image.get_width()*self.m0, self.image.get_height()*self.m1
-        # img.image_matrix = np.asarray([[DARK for j in range(img.width)] for i in range(img.height)])
         img.image_matrix = np.asarray([[self.BLACK for j in range(img.width)] for i in range(img.height)])
         self.resImages = [deepcopy(img) for i in range(self.n)]
         return self.encrypt()
 
     def add_colour(self, p1, p2):
         x,y,z = ((int(p1[0])*int(p2[0]))//255), ((int(p1[1])*int(p2[1]))//255), ((int(p1[2])*int(p2[2]))//255)
-        return [uint16(x),uint16(y), uint16(z)]
+        return [uint8(x),uint8(y), uint8(z)]
     
     def max_min(self,m,n):
         m = m+n
@@ -131,9 +129,7 @@ class VC():
                 colourS0[i].append(self.translation[(S0[i][j],S0[i][j+1],S0[i][j+2])])
                 colourS1[i].append(self.translation[(S1[i][j],S1[i][j+1],S1[i][j+2])])
 
-
         #end convert matrices
-        
         self.m = (self.m+self.extension)//3
         perms = permutations([i for i in range(self.m)])
         for permutation in perms:
