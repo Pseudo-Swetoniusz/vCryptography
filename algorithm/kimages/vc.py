@@ -1,3 +1,4 @@
+from lib2to3.pgen2.token import EQUAL
 from re import M
 from sys import path
 from typing import List
@@ -12,20 +13,16 @@ from itertools import combinations, permutations
 from copy import deepcopy
 from random import randint
 
-DARK = 1
-LIGHT = 0
+#fix m1, m2
 
 TYPE  = uint8
 
-# class Colour(Enum):
-#     BLACK = list(map(TYPE, ['0','0','0']))
-#     WHITE = list(map(TYPE, ['255','255','255']))
-#     RED = list(map(TYPE, ['255','0','0']))
-#     GREEN = list(map(TYPE, ['0','255','0']))
-#     BLUE = list(map(TYPE, ['0','0','255']))
-#     CYAN = list(map(TYPE, ['0','255','255']))
-#     MAGENTA = list(map(TYPE, ['255','0','255']))
-#     YELLOW = list(map(TYPE, ['255','255','0']))
+DARK = tuple(map(TYPE, ['0','0','0']))
+LIGHT = tuple(map(TYPE, ['255','255','255']))
+
+def assertEq(val1, val2, message):
+    if(val1!=val2):
+        print(message)
 
 
 class VC():
@@ -69,10 +66,17 @@ class VC():
         self.setImage(img)
         img = CImage()
         img.width, img.height = self.image.get_width()*self.m0, self.image.get_height()*self.m1
-        img.image_matrix = np.asarray([[self.BLACK for j in range(img.width)] for i in range(img.height)])
+        img.image_matrix = np.asarray([[DARK for j in range(img.width)] for i in range(img.height)])
         self.resImages = [deepcopy(img) for i in range(self.n)]
         return self.encrypt()
 
+    def add(self,p1,p2):
+        # x,y,z = p1[0]*p2[0]//L, p1[1]*p2[1]//L, p1[2]*p2[2]//L
+        # return [uint16(x),uint16(y), uint16(z)]
+        if(self.isBlack(p1) or self.isBlack(p2)):
+            return DARK
+        return LIGHT
+    
     def add_colour(self, p1, p2):
         x,y,z = ((int(p1[0])*int(p2[0]))//255), ((int(p1[1])*int(p2[1]))//255), ((int(p1[2])*int(p2[2]))//255)
         return [uint8(x),uint8(y), uint8(z)]
@@ -109,33 +113,54 @@ class VC():
             else:
                 odd.append(c)
         e = [i for i in range(self.k)]
-        self.extension = self.getSizeMulti3() # add num of cols to multiple of 3
-        S0, S1 = [[LIGHT for j in range(self.m+self.extension)] for i in range(self.k)],[[LIGHT for j in range(self.m+self.extension)] for i in range(self.k)]
+        S0, S1 = [[LIGHT for j in range(self.m)] for i in range(self.k)],[[LIGHT for j in range(self.m)] for i in range(self.k)]
         for i in range(self.k):
             for j in range(self.m):
                 if(e[i] in even[j]):
                     S0[i][j] = DARK
                 if(e[i] in odd[j]):
                     S1[i][j] = DARK
-            for j in range(self.m, self.m+self.extension):
-                S0[i][j] = DARK
-                S1[i][j] = DARK
-
-        # convert matrices
-        colourS0 = [[] for i in range(self.k)]
-        colourS1 = [[] for i in range(self.k)]
-        for i in range(self.k):
-            for j in range(0,self.m+self.extension,3):
-                colourS0[i].append(self.translation[(S0[i][j],S0[i][j+1],S0[i][j+2])])
-                colourS1[i].append(self.translation[(S1[i][j],S1[i][j+1],S1[i][j+2])])
-
-        #end convert matrices
-        self.m = (self.m+self.extension)//3
         perms = permutations([i for i in range(self.m)])
         for permutation in perms:
-            self.C0.append(self.permute(colourS0, permutation))#permute newS
-            self.C1.append(self.permute(colourS1, permutation))
-        self.r = len(self.C0)
+            self.C0.append(self.permute(S0, permutation))
+            self.C1.append(self.permute(S1, permutation))
+        #extending
+        colourC0 = [[[] for j in range(self.k)] for i in range(len(self.C0))]
+        colourC1 = [[[] for j in range(self.k)] for i in range(len(self.C1))]
+        extension = self.getSizeMulti3()
+        for i in range(len(self.C0)):
+            for j in range(self.k):
+                for l in range(0,self.m+extension,3):
+                    first = self.C0[i][j][l]
+                    second = DARK
+                    third = DARK
+                    if((l+1)<self.m):
+                        second = self.C0[i][j][l+1]
+                    if((l+2)<self.m):
+                        third = self.C0[i][j][l+2]
+                    key = (first, second, third)
+                    colour = self.translation[key]
+                    colourC0[i][j].append(colour)
+                    
+                    first = self.C1[i][j][l]
+                    second = DARK
+                    third = DARK
+                    if((l+1)<self.m):
+                        second = self.C1[i][j][l+1]
+                    if((l+2)<self.m):
+                        third = self.C1[i][j][l+2]
+                    key = (first, second, third)
+                    colour = self.translation[key]
+                    colourC1[i][j].append(colour)
+    
+        self.C0 = colourC0
+        self.C1 = colourC1
+        self.m = len(self.C0[0][0])
+        #addition for now
+        assertEq(self.k, len(self.C0[0]), "value k is not equal length of C[0]!!!")
+        assertEq(self.r, len(self.C0), "value r is not equal length of C!!!")
+        
+
 
     def getRandomShares(self, i, j):
         rand = SystemRandom()

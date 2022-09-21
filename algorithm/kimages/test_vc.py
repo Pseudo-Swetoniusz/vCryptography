@@ -23,7 +23,7 @@ def test_permute(n,m,vc: VC):
     # decryptedImg.show_image()
 
 def test_image(filename = "really-big-picture.jpg"):
-    vc = VC(3,3)
+    vc = VC(4,4)
     print("--init")
     # path = f".\\algorithm\\k-images\\test_img\\{filename}"
     path = f"D:\\Rok_Akademicki_21-22\\Praca_Inzynierska\\Official_Repo\\vCryptography\\algorithm\\kimages\\test_img\\{filename}"
@@ -33,13 +33,14 @@ def test_image(filename = "really-big-picture.jpg"):
     print("--run")
     shares = vc(img)
     # print shares
-    # for share in shares:
-    #     share.show_image()
+    for share in shares:
+        share.show_image()
     print("--shares")
     decryptedImg = vc.combineShares()
     print("--combined")
-    #peint result image
-    # decryptedImg.show_image()
+    # peint result image
+    decryptedImg.show_image()
+    print("--end")
     
 
 
