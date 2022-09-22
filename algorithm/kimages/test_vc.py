@@ -8,19 +8,19 @@ def test_permute(n,m,vc: VC):
     newS = vc.permute(S, permutation)
     print(f"S = {S}\np = {permutation}\n=> {newS}")
 
-def test_simple():
-    vc = VC(3,3)
-    array = np.asarray([   [BLACK, OTHER, OTHER],
-                [BLACK, BLACK, BLACK],
-                [OTHER, BLACK, OTHER] ])
-    img = CImage()
-    img.update_matrix(array)
-    img.width, img.height = 3,3
-    img.update_image()
+# def test_simple():
+    # vc = VC(3,3)
+    # array = np.asarray([   [BLACK, OTHER, OTHER],
+    #             [BLACK, BLACK, BLACK],
+    #             [OTHER, BLACK, OTHER] ])
+    # img = CImage()
+    # img.update_matrix(array)
+    # img.width, img.height = 3,3
+    # img.update_image()
 
-    shares = vc(img)
-    decryptedImg = vc.combineShares()
-    decryptedImg.show_image()
+    # shares = vc(img)
+    # decryptedImg = vc.combineShares()
+    # decryptedImg.show_image()
 
 def test_image(filename = "really-big-picture.jpg"):
     vc = VC(4,4)
@@ -32,17 +32,22 @@ def test_image(filename = "really-big-picture.jpg"):
     # img.show_image()
     print("--run")
     shares = vc(img)
+    # print shares
     for share in shares:
         share.show_image()
     print("--shares")
     decryptedImg = vc.combineShares()
     print("--combined")
+    # peint result image
     decryptedImg.show_image()
+    print("--end")
     
 
 
 # test_simple()
+
 test_image("penta.png")
 
 # vc = VC(3,3)
 # test_permute(3,3,vc)
+

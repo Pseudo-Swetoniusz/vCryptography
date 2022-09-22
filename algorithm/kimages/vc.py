@@ -1,7 +1,7 @@
+
 from sys import path
 from typing import List
-
-from numpy import uint8, uint16
+from numpy import uint8
 path.append(".")
 from utils.BinaryData import *
 from utils.Image import *
@@ -10,15 +10,33 @@ from random import SystemRandom
 from itertools import combinations, permutations
 from copy import deepcopy
 
-L = 255
-TYPE  = uint8
-BLACK = list(map(TYPE, ['0','0','0']))
-OTHER = list(map(TYPE, ['255','255','255']))
-
-t = 1
-
 
 class VC():
+    TYPE  = uint8
+
+    DARK = tuple(map(TYPE, ['0','0','0']))
+    LIGHT = tuple(map(TYPE, ['255','255','255']))
+
+    BLACK = list(map(TYPE, ['0','0','0']))
+    WHITE = list(map(TYPE, ['255','255','255']))
+    RED = list(map(TYPE, ['255','0','0']))
+    GREEN = list(map(TYPE, ['0','255','0']))
+    BLUE = list(map(TYPE, ['0','0','255']))
+    CYAN = list(map(TYPE, ['0','255','255']))
+    MAGENTA = list(map(TYPE, ['255','0','255']))
+    YELLOW = list(map(TYPE, ['255','255','0']))
+
+    translation = {
+        (LIGHT, LIGHT, LIGHT): WHITE, 
+        (DARK, LIGHT, LIGHT): YELLOW,
+        (LIGHT, DARK, LIGHT): MAGENTA, 
+        (LIGHT, LIGHT, DARK): CYAN, 
+        (LIGHT, DARK, DARK): RED, 
+        (DARK, LIGHT, DARK): GREEN, 
+        (DARK, DARK, LIGHT): BLUE, 
+        (DARK, DARK, DARK): BLACK
+    }
+
     def __init__(self,n: int, k: int):
         self.n = n #liczba podobrazów
         self.k = k # liczba podobrazów koniecznych do odkrycia sekretu
@@ -27,35 +45,34 @@ class VC():
         self.m = 2**(self.k-1)
         self.r = factorial(2**(self.k-1))
         self.C0, self.C1 = [],[]
+        self.S0, self.S1 = [],[]
         self.getCMatrices()
-        self.m0 = 2**((self.k-1)//2)
-        self.m1 = self.m//self.m0
-        self.m0, self.m1 = self.max_min(self.m0, self.m1)
-        # self.m0 = self.m
-        # self.m1 = 1
-        
+        self.m0 = self.m
+        self.m1 = 1
 
     def __call__(self, img: CImage):
         self.setImage(img)
         img = CImage()
         img.width, img.height = self.image.get_width()*self.m0, self.image.get_height()*self.m1
-        img.image_matrix = np.asarray([[BLACK for j in range(img.width)] for i in range(img.height)])
+        img.image_matrix = np.asarray([[self.DARK for j in range(img.width)] for i in range(img.height)])
         self.resImages = [deepcopy(img) for i in range(self.n)]
-        # print("--encrypt")
         return self.encrypt()
     
-    def add(self,p1,p2):
-        # x,y,z = p1[0]*p2[0]//L, p1[1]*p2[1]//L, p1[2]*p2[2]//L
-        # return [uint16(x),uint16(y), uint16(z)]
-        if(self.isBlack(p1) or self.isBlack(p2)):
-            return BLACK
-        return OTHER
+    def factors(self,n):
+        i = int(n**0.5)
+        while(n%i!=0):
+            i-=1
+        return i, n//i
     
     def max_min(self,m,n):
         m = m+n
         n = m-n
         m = m-n
         return m,n
+    
+    def add_colour(self, p1, p2):
+        x,y,z = ((int(p1[0])*int(p2[0]))//255), ((int(p1[1])*int(p2[1]))//255), ((int(p1[2])*int(p2[2]))//255)
+        return [uint8(x),uint8(y), uint8(z)]
 
     def setImage(self, img: CImage):
         self.image = img
@@ -66,6 +83,20 @@ class VC():
             for j in range(len(S[i])):
                 resS[i][j] = S[i][permutation[j]]
         return resS
+
+    def getSizeMulti3(self):
+        return (3-(self.m%3))%3
+
+    def getTriple(self, array, i, j, l):
+        first = array[i][j][l]
+        second = self.DARK
+        third = self.DARK
+        if((l+1)<self.m):
+            second = array[i][j][l+1]
+        if((l+2)<self.m):
+            third = array[i][j][l+2]
+        key = (first, second, third)
+        return(self.translation[key])
 
     def getCMatrices(self):
         e = {i for i in range(self.k)}
@@ -80,17 +111,33 @@ class VC():
             else:
                 odd.append(c)
         e = [i for i in range(self.k)]
-        S0, S1 = [[OTHER for j in range(self.m)] for i in range(self.k)],[[OTHER for j in range(self.m)] for i in range(self.k)]
+        S0, S1 = [[self.LIGHT for j in range(self.m)] for i in range(self.k)],[[self.LIGHT for j in range(self.m)] for i in range(self.k)]
         for i in range(self.k):
             for j in range(self.m):
                 if(e[i] in even[j]):
-                    S0[i][j] = BLACK
+                    S0[i][j] = self.DARK
                 if(e[i] in odd[j]):
-                    S1[i][j] = BLACK
+                    S1[i][j] = self.DARK
         perms = permutations([i for i in range(self.m)])
         for permutation in perms:
             self.C0.append(self.permute(S0, permutation))
             self.C1.append(self.permute(S1, permutation))
+        #extending
+        colourC0 = [[[] for j in range(self.k)] for i in range(len(self.C0))]
+        colourC1 = [[[] for j in range(self.k)] for i in range(len(self.C1))]
+        extension = self.getSizeMulti3()
+        for i in range(len(self.C0)):
+            for j in range(self.k):
+                for l in range(0,self.m+extension,3):
+                    colour = self.getTriple(self.C0,i,j,l)
+                    colourC0[i][j].append(colour)
+                    colour = self.getTriple(self.C1,i,j,l)
+                    colourC1[i][j].append(colour)
+        self.C0 = colourC0
+        self.C1 = colourC1
+        self.m = len(self.C0[0][0])
+        self.m0, self.m1 = self.factors(self.m)
+        print(self.m0,self.m1)
 
     def getRandomShares(self, i, j):
         rand = SystemRandom()
@@ -100,14 +147,13 @@ class VC():
         return self.C0[tmp]
 
     def isBlack(self, pixel):
-        return pixel[0]==BLACK[0] and pixel[1]==BLACK[1] and pixel[2]==BLACK[2]
+        return pixel[0]==0 and pixel[1]==0 and pixel[2]==0
 
     def buildShares(self, i: int, j: int):
         newI, newJ = i*self.m1,j*self.m0
         shares = self.getRandomShares(i, j)
         for num in range(len(self.resImages)):
             current = self.resImages[num]
-            # print(self.m0, self.m1, "::", len(current.image_matrix), len(current.image_matrix[0]))
             for idxI in range(self.m1):
                 for idxJ in range(self.m0):
                     current.image_matrix[newI+idxI][newJ+idxJ] = shares[num][(idxI+1)*idxJ]
@@ -116,10 +162,8 @@ class VC():
         for i in range(self.image.height):
             for j in range(self.image.width):
                 self.buildShares(i,j)
-        # print("--shares built")
         for image in self.resImages:
             image.update_image()
-        # print("--res images ready")
         return self.resImages
 
     def combine(self, img1: CImage, img2: CImage):
@@ -127,7 +171,7 @@ class VC():
         res = deepcopy(img1)
         for i in range(img1.height):
             for j in range(img1.width):
-                res.image_matrix[i][j] = self.add(img1[i,j],img2[i,j])
+                res.image_matrix[i][j] = self.add_colour(img1[i,j],img2[i,j])
         return res
 
     def combineShares(self):
@@ -136,5 +180,4 @@ class VC():
             res = self.combine(res, self.resImages[i])
         res.update_image()
         return res
-
 
