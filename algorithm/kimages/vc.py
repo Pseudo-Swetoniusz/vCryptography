@@ -10,6 +10,7 @@ from random import SystemRandom
 from itertools import combinations, permutations
 from copy import deepcopy
 
+# value of l and two functions
 
 class VC():
     TYPE  = uint8
@@ -98,6 +99,14 @@ class VC():
         key = (first, second, third)
         return(self.translation[key])
 
+    def getVector(self, tidx):
+        #IMPLEMENT
+        return 0
+    
+    def getHashFunction(self):
+        #IMPLEMENT
+        return None
+    
     def getCMatrices(self):
         e = {i for i in range(self.k)}
         comb = []
@@ -122,6 +131,7 @@ class VC():
         for permutation in perms:
             self.C0.append(self.permute(S0, permutation))
             self.C1.append(self.permute(S1, permutation))
+
         #extending
         colourC0 = [[[] for j in range(self.k)] for i in range(len(self.C0))]
         colourC1 = [[[] for j in range(self.k)] for i in range(len(self.C1))]
@@ -137,7 +147,26 @@ class VC():
         self.C1 = colourC1
         self.m = len(self.C0[0][0])
         self.m0, self.m1 = self.factors(self.m)
-        print(self.m0,self.m1)
+
+        #(k,n)
+        l = 7 #FIX
+        expC0, expC1 = [],[]
+        for tidx in range(self.r**l):
+            t = self.getVector(tidx)
+            expC0.append([])
+            expC1.append([])
+            for i in range(self.n):
+                expC0[tidx].append([])
+                expC1[tidx].append([])
+                for j in range(self.m):
+                    h = self.getHashFunction()
+                    expC0[tidx][i][j] = self.C0[t[j]][h(i)][j]
+                    #different functions
+                    h = self.getHashFunction()
+                    expC1[tidx][i][j] = self.C1[t[j]][h(i)][j]
+        self.C0 = expC0
+        self.C1 = expC1
+        self.r = len(self.C0)
 
     def getRandomShares(self, i, j):
         rand = SystemRandom()
