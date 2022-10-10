@@ -10,9 +10,11 @@ class CImage:
         self.image_matrix = None
         self.width = None
         self.height = None
+        self.mode = None
 
     def read_image(self, file_path):
         self.original_image = Image.open(file_path)
+        self.mode = self.original_image.mode
         self.width, self.height = self.original_image.size
         self.image_matrix = np.asarray(self.original_image)
         self.update_image()
@@ -28,6 +30,7 @@ class CImage:
 
     def update_image(self):
         self.new_image = Image.fromarray(self.image_matrix)
+        self.mode = self.new_image.mode
 
     def set_image(self):
         self.original_image = Image.fromarray(self.image_matrix)
@@ -56,6 +59,16 @@ class CImage:
         pixmap = QPixmap.fromImage(qim)
         return pixmap
 
+    def compare_image(self, img):
+        if self.width != img.get_width() or self.height != img.get_height():
+            return False
+        else:
+            for x in range(self.height):
+                for y in range(self.width):
+                    if not np.array_equal(self.image_matrix[x][y], img.__getitem__((x, y))):
+                        return False
+            return True
+
     def __getitem__(self, idx):
-        i,j = idx
+        i, j = idx
         return self.image_matrix[i][j]

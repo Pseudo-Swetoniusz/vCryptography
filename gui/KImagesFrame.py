@@ -184,8 +184,8 @@ class MenuWidget(QWidget):
         self.startButton.clicked.connect(self.run)
         self.shareWidget = ShareWidget(self)
         self.shareImage = QLabel(self)
-        self.shareImage.setMinimumHeight(self.width*0.8)
-        self.shareImage.setMinimumWidth(self.width*0.8)
+        self.shareImage.setMinimumHeight(int(self.width*0.8))
+        self.shareImage.setMinimumWidth(int(self.width*0.8))
         self.shareImage.setAlignment(Qt.AlignCenter)
         
         layout.addWidget(self.textInputLabel)

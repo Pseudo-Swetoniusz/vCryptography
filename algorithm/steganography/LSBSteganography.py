@@ -5,13 +5,16 @@ from utils.Image import CImage
 
 
 class LSBSteganography:
-    def __init__(self, image_path):
+    def __init__(self):
         self.BD = BinaryData()
         self.image = CImage()
-        self.image.read_image(image_path)
         self.text = None
         self.binary_text = None
         self.hidden_image = CImage()
+        self.max_length = None
+
+    def load_image(self, image_path):
+        self.image.read_image(image_path)
         self.max_length = self.image.width * self.image.height * 3
 
     def load_text(self, text):

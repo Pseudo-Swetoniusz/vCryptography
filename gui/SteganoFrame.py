@@ -309,7 +309,8 @@ class ReadTextWidget(QWidget):
         print(path)
         pixmap = QPixmap(path)
         self.base_image_label.setPixmap(pixmap)
-        lsb = LSBSteganography(path)
+        lsb = LSBSteganography()
+        lsb.load_image(path)
         text = lsb.read_text()
         self.text_label.setText(text)
         self.setVisible(True)
@@ -355,7 +356,8 @@ class ReadImageWidget(QWidget):
         print(path)
         pixmap = QPixmap(path)
         self.base_image_label.setPixmap(pixmap)
-        lsb = LSBSteganography(path)
+        lsb = LSBSteganography()
+        lsb.load_image(path)
         image = lsb.read_image()
         pixmap = image.get_pixmap()
         self.result_image_label.setPixmap(pixmap)
@@ -467,7 +469,8 @@ class ImageInImageWidget(QWidget):
             print('error')
 
     def hide_image(self):
-        self.lsb = LSBSteganography(self.path)
+        self.lsb = LSBSteganography()
+        self.lsb.load_image(self.path)
         self.lsb.hide_image(self.hidden_path)
         pixmap = self.lsb.image.get_pixmap()
         self.result_image.setPixmap(pixmap)
@@ -595,7 +598,8 @@ class TextInImageWidget(QWidget):
             print('error - 6')
 
     def hide_text(self):
-        self.lsb = LSBSteganography(self.path)
+        self.lsb = LSBSteganography()
+        self.lsb.load_image(self.path)
         self.lsb.load_text(self.h_text[0])
         self.lsb.hide_text()
         pixmap = self.lsb.image.get_pixmap()

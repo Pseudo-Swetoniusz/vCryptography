@@ -38,14 +38,14 @@ class BinaryData:
         C.set_image()
         return C
 
-    def text_to_binary(self, text):
+    def text_to_binary(self, text: string):
         text_bin = ""
         for l in text:
             t = format(ord(l), '09b')
             text_bin += t
         return text_bin
 
-    def binary_to_text(self, binary):
+    def binary_to_text(self, binary: string):
         text = ""
         for i in range(0, len(binary), 9):
             bl = binary[i:i + 9]
@@ -53,8 +53,8 @@ class BinaryData:
             text += l
         return text
 
-    def number_to_binary(self, number):
+    def number_to_binary(self, number: int):
         return format(number, '08b')
 
-    def binary_to_number(self, binary):
+    def binary_to_number(self, binary: string):
         return int(binary, 2)
