@@ -189,7 +189,7 @@ class VC():
         for i in range(1,len(indices)):
             if(indices[i]<len(self.resImages)):
                 res = self.combine(res, self.resImages[indices[i]])
-        # res.update_image()
+        res.update_image()
         return res
 
 
