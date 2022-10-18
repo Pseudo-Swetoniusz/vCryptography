@@ -46,8 +46,15 @@ def test_image(filename = "really-big-picture.jpg"):
 
 # test_simple()
 
-test_image("penta.png")
+# test_image("penta.png")
 
 # vc = VC(3,3)
 # test_permute(3,3,vc)
 
+import itertools
+l = 4
+r = 3
+t = [i+1 for i in range(r)]
+s = [p for p in itertools.product(t, repeat=l)]
+print(t)
+print(s)

@@ -7,7 +7,7 @@ from utils.BinaryData import *
 from utils.Image import *
 from math import factorial
 from random import SystemRandom
-from itertools import combinations, permutations
+from itertools import combinations, permutations, product
 from copy import deepcopy
 
 # value of l and two functions
@@ -50,6 +50,9 @@ class VC():
         self.getCMatrices()
         self.m0 = self.m
         self.m1 = 1
+        self.l = 0
+        self.vectors = []
+        self.hashes = []
 
     def __call__(self, img: CImage):
         self.setImage(img)
@@ -99,9 +102,14 @@ class VC():
         key = (first, second, third)
         return(self.translation[key])
 
-    def getVector(self, tidx):
-        #IMPLEMENT
-        return 0
+    def constructVectors(self):
+        t = [i+1 for i in range(self.r)]
+        self.vectors = [p for p in product(t, repeat=self.l)]
+        if(len(self.vectors) != self.l*self.r):
+            print("wrong vector construction!!!")
+
+    def constructHashes(self):
+        pass
     
     def getHashFunction(self):
         #IMPLEMENT
@@ -149,10 +157,12 @@ class VC():
         self.m0, self.m1 = self.factors(self.m)
 
         #(k,n)
-        l = 7 #FIX
+        self.l = 4 #FIX
+        self.constructVectors()
+        self.constructHashes()
         expC0, expC1 = [],[]
-        for tidx in range(self.r**l):
-            t = self.getVector(tidx)
+        for tidx in range(self.r**self.l):
+            t = self.vectors[tidx]
             expC0.append([])
             expC1.append([])
             for i in range(self.n):
