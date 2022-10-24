@@ -5,6 +5,7 @@ from numpy import uint8
 path.append(".")
 from utils.BinaryData import *
 from utils.Image import *
+from utils.BinaryImage import *
 from math import factorial
 from random import SystemRandom
 from itertools import combinations, permutations
