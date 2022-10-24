@@ -112,9 +112,11 @@ class ImagesWidget(QWidget):
 
         self.original = QLabel(self)
         self.original.setMinimumHeight(height//2)
+        self.original.setMaximumHeight(height//2)
         self.original.setAlignment(Qt.AlignCenter)
         self.result = QLabel(self)
         self.result.setMinimumHeight(height//2)
+        self.result.setMaximumHeight(height//2)
         self.result.setAlignment(Qt.AlignCenter)
         
         layout.addWidget(self.original)
@@ -141,12 +143,14 @@ class MenuWidget(QWidget):
         self.startButton = None
         self.shareWidget = None
         self.shareImage = None
+        self.combineWidget = None
 
         self.shares = None
         self.shareIndex = 0
         self.decryptedImg = None
         self.path = None
         self.shareSize = 0
+        self.vc = None
         self.width = 600
         self.initUI()
 
@@ -184,9 +188,15 @@ class MenuWidget(QWidget):
         self.startButton.clicked.connect(self.run)
         self.shareWidget = ShareWidget(self)
         self.shareImage = QLabel(self)
-        self.shareImage.setMinimumHeight(int(self.width*0.8))
-        self.shareImage.setMinimumWidth(int(self.width*0.8))
+        # self.shareImage.setMinimumHeight(self.width*0.8)
+        x = 0.5
+        self.shareImage.setMinimumWidth(self.width*x)
+        self.shareImage.setMaximumHeight(self.width*x)
+        self.shareImage.setMaximumWidth(self.width*x)
         self.shareImage.setAlignment(Qt.AlignCenter)
+        self.combineWidget = CombineWidget(self)
+        self.combineWidget.setMinimumHeight(3*height)
+        self.combineWidget.setMaximumHeight(3*height)
         
         layout.addWidget(self.textInputLabel)
         layout.addWidget(self.imageButton, alignment=Qt.AlignHCenter)
@@ -194,14 +204,14 @@ class MenuWidget(QWidget):
         layout.addWidget(self.startButton, alignment=Qt.AlignHCenter)
         layout.addWidget(self.shareWidget, alignment=Qt.AlignHCenter)
         layout.addWidget(self.shareImage, alignment=Qt.AlignHCenter)
+        layout.addWidget(self.combineWidget, alignment=Qt.AlignHCenter)
 
         self.setLayout(layout)
 
     def loadImage(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        file_name = QFileDialog.getOpenFileName(self, 'Open File', '',
-                                                "image Files (*.png)")
+        file_name = QFileDialog.getOpenFileName(self, 'Open File', '', "image Files (*.png)")
         if file_name[0] == '':
             print('filename error')
         elif file_name:
@@ -211,19 +221,26 @@ class MenuWidget(QWidget):
             print('load image error')
 
     def run(self):
-        variableString = self.variableInput.toPlainText()
-        intList = list(map(int, variableString.split(' ')))
+        try:
+            variableString = self.variableInput.toPlainText()
+            intList = list(map(int, variableString.split(' ')))
+        except:
+            print("failed to get args :(")
+            return
         if(len(intList)!=2):
             print("Wrong number of args")
         else:
             n,k = intList
-            vc = VC(n,n)
+            self.vc = VC(n,n)
             path = self.parent.getOriginalPath()
+            if(path == None):
+                print("image not selected!")
+                return
             img = CImage()
             img.read_image(path)
             print(n,img.get_pixmap())
-            self.shares = vc(img)
-            self.decryptedImg = vc.combineShares()
+            self.shares = self.vc(img)
+            self.decryptedImg = self.vc.combineShares()
             self.parent.setResult(self.decryptedImg.get_pixmap())
             self.prepareShares()
     
@@ -252,6 +269,55 @@ class MenuWidget(QWidget):
         self.setShare()
         self.shareWidget.setLabel(self.shareIndex)
 
+class CombineWidget(QWidget):
+    def __init__(self,parent: KImagesFrame):
+        super().__init__(parent)
+        self.parent = parent
+        self.idxInput = None
+        self.combineButton = None
+        self.initUI()
+
+    def initUI(self):
+        self.setMinimumWidth(600)
+        self.setStyleSheet("background:##008080; border: 3px solid #323232;")
+        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+        layout = QVBoxLayout()
+        layout.setAlignment(Qt.AlignTop)
+        self.createHorizontalLayout()
+        layout.addWidget(self.horizontalGroupBox)
+        self.setLayout(layout)
+
+    def createHorizontalLayout(self):
+        self.horizontalGroupBox = QGroupBox()
+        layout = QHBoxLayout()
+        self.horizontalGroupBox.setMaximumHeight(80)
+
+        self.idxInput = QTextEdit(self)
+        self.idxInput.setStyleSheet("background-color:#3a3a3a;border:none;font-size:30px; letter-spacing:1px;")
+        self.idxInput.setMinimumHeight(50)
+        self.idxInput.setMaximumHeight(50)
+        layout.addWidget(self.idxInput)
+        self.combineButton = QPushButton('Combine', self)
+        self.combineButton.clicked.connect(self.combine)
+        layout.addWidget(self.combineButton)
+
+        self.horizontalGroupBox.setLayout(layout)
+
+    def combine(self):
+        indices = []
+        try:
+            variableString = self.idxInput.toPlainText()
+            indices = list(map(int, variableString.split(' ')))
+            print("combine: ", indices)
+        except:
+            print("failed to get input :(")
+            return
+        try:
+            combinedImg = self.parent.vc.combineSharesByIdx(indices)
+            self.parent.parent.setResult(combinedImg.get_pixmap())
+        except:
+            print("problem combining")
+        
 
 class ShareWidget(QWidget):
     def __init__(self, parent: KImagesFrame):
@@ -264,19 +330,16 @@ class ShareWidget(QWidget):
         self.initUI()
 
     def initUI(self):
-        self.setMinimumWidth(600)
+        self.setMinimumWidth(400)
         self.setStyleSheet("background:#3a3a3a; border: 3px solid #323232;")
-        self.setMaximumHeight(120)
+        self.setMaximumHeight(100)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignTop)
-
         self.createHorizontalLayout()
-        
-        self.shares = QGraphicsView(self)
+        # self.shares = QGraphicsView(self)
         layout.addWidget(self.horizontalGroupBox)
-        layout.addWidget(self.shares)
-
+        # layout.addWidget(self.shares)
         self.setLayout(layout)
 
     def createHorizontalLayout(self):

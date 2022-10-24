@@ -181,3 +181,15 @@ class VC():
         res.update_image()
         return res
 
+    def combineSharesByIdx(self, indices):
+        if(len(indices)<1):
+            print("Improper indices")
+            return None
+        res = self.resImages[indices[0]]
+        for i in range(1,len(indices)):
+            if(indices[i]<len(self.resImages)):
+                res = self.combine(res, self.resImages[indices[i]])
+        res.update_image()
+        return res
+
+
