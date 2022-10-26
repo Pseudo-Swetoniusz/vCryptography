@@ -45,14 +45,14 @@ class VC():
         self.resImages: List[CImage]
         self.m = 2**(self.k-1)
         self.r = factorial(2**(self.k-1))
+        self.l = 4
+        self.vectors = []
+        self.hashes = []
         self.C0, self.C1 = [],[]
         self.S0, self.S1 = [],[]
         self.getCMatrices()
         self.m0 = self.m
         self.m1 = 1
-        self.l = 0
-        self.vectors = []
-        self.hashes = []
 
     def __call__(self, img: CImage):
         self.setImage(img)
@@ -105,15 +105,28 @@ class VC():
     def constructVectors(self):
         t = [i+1 for i in range(self.r)]
         self.vectors = [p for p in product(t, repeat=self.l)]
-        if(len(self.vectors) != self.l*self.r):
+        if(len(self.vectors) != self.r**self.l):
             print("wrong vector construction!!!")
 
     def constructHashes(self):
-        pass
+        for i in range(self.l):
+            p = 6113 #large prime
+            rand = SystemRandom()
+            coeffs = [rand.randint(0,p) for i in range(self.k)]
+            self.hashes.append(coeffs)
     
     def getHashFunction(self):
-        #IMPLEMENT
-        return None
+        rand = SystemRandom()
+        h = rand.randint(0,self.l-1)
+        return h
+    
+    def solve(self,h,x):
+        coeffs = self.hashes[h]
+        res = 0
+        for exp in range(self.k-1,-1,-1):
+            res += coeffs[exp]*pow(x,exp)
+            res = res%self.k
+        return res 
     
     def getCMatrices(self):
         e = {i for i in range(self.k)}
@@ -160,20 +173,25 @@ class VC():
         self.l = 4 #FIX
         self.constructVectors()
         self.constructHashes()
-        expC0, expC1 = [],[]
+        expC0, expC1 = [[[[]for i in range(self.m)] for i in range(self.n)] for i in range(self.r**self.l)],[[[[]for i in range(self.m)] for i in range(self.n)] for i in range(self.r**self.l)]
         for tidx in range(self.r**self.l):
             t = self.vectors[tidx]
-            expC0.append([])
-            expC1.append([])
+            # expC0.append([])
+            # expC1.append([])
             for i in range(self.n):
-                expC0[tidx].append([])
-                expC1[tidx].append([])
+                # expC0[tidx].append([])
+                # expC1[tidx].append([])
                 for j in range(self.m):
                     h = self.getHashFunction()
-                    expC0[tidx][i][j] = self.C0[t[j]][h(i)][j]
+                    lIdx = self.solve(h,i)
+                    expC0[tidx][i][j] = self.C0[t[j]-1][lIdx][j]
+                    # except:
+                    #     print(len(expC0), len(expC0[0]), len(expC0[0][0]))
+                    #     print(len(self.C0), len(self.C0[0]), len(self.C0[0][0]))
+                    #     print(tidx,i,j, " : : ",t[j],lIdx,j)
                     #different functions
                     h = self.getHashFunction()
-                    expC1[tidx][i][j] = self.C1[t[j]][h(i)][j]
+                    expC1[tidx][i][j] = self.C1[t[j]-1][self.solve(h,i)][j]
         self.C0 = expC0
         self.C1 = expC1
         self.r = len(self.C0)

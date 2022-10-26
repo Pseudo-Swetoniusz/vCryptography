@@ -22,11 +22,11 @@ def test_permute(n,m,vc: VC):
     # decryptedImg = vc.combineShares()
     # decryptedImg.show_image()
 
-def test_image(filename = "really-big-picture.jpg"):
-    vc = VC(4,4)
+def test_image(filename = "circles.png"):
+    vc = VC(3,3)
     print("--init")
     # path = f".\\algorithm\\k-images\\test_img\\{filename}"
-    path = f"D:\\Rok_Akademicki_21-22\\Praca_Inzynierska\\Official_Repo\\vCryptography\\algorithm\\kimages\\test_img\\{filename}"
+    path = f"D:\\Rok_Akademicki_22-23\\Praca_Inzynierska\\doku\\obrazy\\{filename}"
     img = CImage()
     img.read_image(path)
     # img.show_image()
@@ -45,16 +45,15 @@ def test_image(filename = "really-big-picture.jpg"):
 
 
 # test_simple()
-
+test_image()
 # test_image("penta.png")
 
 # vc = VC(3,3)
 # test_permute(3,3,vc)
 
-import itertools
-l = 4
-r = 3
-t = [i+1 for i in range(r)]
-s = [p for p in itertools.product(t, repeat=l)]
-print(t)
-print(s)
+# import itertools
+# l = 4
+# r = 3
+# t = [i+1 for i in range(r)]
+# s = [p for p in itertools.product(t, repeat=l)]
+# print(t)
