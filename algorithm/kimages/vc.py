@@ -10,9 +10,10 @@ from math import factorial
 from random import SystemRandom
 from itertools import combinations, permutations
 from copy import deepcopy
+import unittest
 
 
-class VC():
+class VC(unittest.TestCase):
     TYPE  = uint8
 
     DARK = tuple(map(TYPE, ['0','0','0']))
@@ -39,14 +40,14 @@ class VC():
     }
 
     def __init__(self,n: int, k: int):
+        super().__init__()
         self.n = n #liczba podobrazów
         self.k = k # liczba podobrazów koniecznych do odkrycia sekretu
         self.image: CImage
         self.resImages: List[CImage]
         self.m = 2**(self.k-1)
-        self.r = factorial(2**(self.k-1))
+        self.r = factorial(self.m)
         self.C0, self.C1 = [],[]
-        self.S0, self.S1 = [],[]
         self.getCMatrices()
         self.m0 = self.m
         self.m1 = 1
@@ -100,6 +101,7 @@ class VC():
         return(self.translation[key])
 
     def getCMatrices(self):
+        # phase 1 - building Cs based on subset cardinality
         e = {i for i in range(self.k)}
         comb = []
         for i in range(0,len(e)+1):
@@ -119,11 +121,18 @@ class VC():
                     S0[i][j] = self.DARK
                 if(e[i] in odd[j]):
                     S1[i][j] = self.DARK
+        self.assertEqual(self.k,len(S0))
+        self.assertEqual(self.k,len(S1))
+        self.assertEqual(self.m,len(S0[0]))
+        self.assertEqual(self.m,len(S1[0]))
         perms = permutations([i for i in range(self.m)])
         for permutation in perms:
             self.C0.append(self.permute(S0, permutation))
             self.C1.append(self.permute(S1, permutation))
-        #extending
+        self.assertEqual(self.r, len(self.C0))
+        self.assertEqual(self.r, len(self.C1))
+
+        # extending
         colourC0 = [[[] for j in range(self.k)] for i in range(len(self.C0))]
         colourC1 = [[[] for j in range(self.k)] for i in range(len(self.C1))]
         extension = self.getSizeMulti3()
@@ -138,7 +147,6 @@ class VC():
         self.C1 = colourC1
         self.m = len(self.C0[0][0])
         self.m0, self.m1 = self.factors(self.m)
-        print(self.m0,self.m1)
 
     def getRandomShares(self, i, j):
         rand = SystemRandom()
