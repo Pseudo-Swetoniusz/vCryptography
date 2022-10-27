@@ -9,6 +9,7 @@ from math import factorial
 from random import SystemRandom
 from itertools import combinations, permutations, product
 from copy import deepcopy
+from math import log, ceil
 
 # value of l and two functions
 
@@ -38,15 +39,15 @@ class VC():
         (DARK, DARK, DARK): BLACK
     }
 
-    def __init__(self,n: int, k: int):
+    def __init__(self,k: int, n: int):
         self.n = n #liczba podobrazów
         self.k = k # liczba podobrazów koniecznych do odkrycia sekretu
         self.image: CImage
         self.resImages: List[CImage]
         self.m = 2**(self.k-1)
         self.r = factorial(2**(self.k-1))
-        self.l = 4
-        self.vectors = []
+        self.l = ceil(log(n,k))+3
+        # self.vectors = []
         self.hashes = []
         self.C0, self.C1 = [],[]
         self.S0, self.S1 = [],[]
@@ -61,6 +62,7 @@ class VC():
         img.image_matrix = np.asarray([[self.DARK for j in range(img.width)] for i in range(img.height)])
         self.resImages = [deepcopy(img) for i in range(self.n)]
         return self.encrypt()
+    
     
     def factors(self,n):
         i = int(n**0.5)
@@ -102,15 +104,32 @@ class VC():
         key = (first, second, third)
         return(self.translation[key])
 
-    def constructVectors(self):
-        t = [i+1 for i in range(self.r)]
-        self.vectors = [p for p in product(t, repeat=self.l)]
-        if(len(self.vectors) != self.r**self.l):
-            print("wrong vector construction!!!")
+    # def constructVectors(self):
+    #     t = [i+1 for i in range(self.r)]
+    #     self.vectors = [p for p in product(t, repeat=self.l)]
+    #     if(len(self.vectors) != self.r**self.l):
+    #         print("wrong vector construction!!!")
+    #     print(len(self.vectors))
+
+    def getVector(self):
+        t = tuple(1 for i in range(self.l))
+        return t
+    
+    def incrementVector(self,t):
+        newT = [t[i] for i in range(self.l)]
+        for i in range(self.l):
+            if(newT[i]+1<=self.r):
+                newT[i] = newT[i]+1
+                break
+            else:
+                newT[i] = 1
+        return tuple(newT[i] for i in range(self.l))
+
 
     def constructHashes(self):
         for i in range(self.l):
-            p = 6113 #large prime
+            # p = 6113 #large prime
+            p = 331
             rand = SystemRandom()
             coeffs = [rand.randint(0,p) for i in range(self.k)]
             self.hashes.append(coeffs)
@@ -153,43 +172,35 @@ class VC():
             self.C0.append(self.permute(S0, permutation))
             self.C1.append(self.permute(S1, permutation))
 
-        #extending
-        colourC0 = [[[] for j in range(self.k)] for i in range(len(self.C0))]
-        colourC1 = [[[] for j in range(self.k)] for i in range(len(self.C1))]
-        extension = self.getSizeMulti3()
-        for i in range(len(self.C0)):
-            for j in range(self.k):
-                for l in range(0,self.m+extension,3):
-                    colour = self.getTriple(self.C0,i,j,l)
-                    colourC0[i][j].append(colour)
-                    colour = self.getTriple(self.C1,i,j,l)
-                    colourC1[i][j].append(colour)
-        self.C0 = colourC0
-        self.C1 = colourC1
-        self.m = len(self.C0[0][0])
-        self.m0, self.m1 = self.factors(self.m)
+        # #extending
+        # #sth wrong!!!
+        # colourC0 = [[[] for j in range(self.k)] for i in range(len(self.C0))]
+        # colourC1 = [[[] for j in range(self.k)] for i in range(len(self.C1))]
+        # extension = self.getSizeMulti3()
+        # for i in range(len(self.C0)):
+        #     for j in range(self.k):
+        #         for l in range(0,self.m+extension,3):
+        #             colour = self.getTriple(self.C0,i,j,l)
+        #             colourC0[i][j].append(colour)
+        #             colour = self.getTriple(self.C1,i,j,l)
+        #             colourC1[i][j].append(colour)
+        # self.C0 = colourC0
+        # self.C1 = colourC1
+        # self.m = len(self.C0[0][0])
+        # self.m0, self.m1 = self.factors(self.m)
 
-        #(k,n)
-        self.l = 4 #FIX
-        self.constructVectors()
+        # (k,n)
+        # sth wrong!!!
+        # self.constructVectors()
         self.constructHashes()
         expC0, expC1 = [[[[]for i in range(self.m)] for i in range(self.n)] for i in range(self.r**self.l)],[[[[]for i in range(self.m)] for i in range(self.n)] for i in range(self.r**self.l)]
+        t = self.getVector()
         for tidx in range(self.r**self.l):
-            t = self.vectors[tidx]
-            # expC0.append([])
-            # expC1.append([])
+            t = self.incrementVector(t)
             for i in range(self.n):
-                # expC0[tidx].append([])
-                # expC1[tidx].append([])
                 for j in range(self.m):
                     h = self.getHashFunction()
-                    lIdx = self.solve(h,i)
-                    expC0[tidx][i][j] = self.C0[t[j]-1][lIdx][j]
-                    # except:
-                    #     print(len(expC0), len(expC0[0]), len(expC0[0][0]))
-                    #     print(len(self.C0), len(self.C0[0]), len(self.C0[0][0]))
-                    #     print(tidx,i,j, " : : ",t[j],lIdx,j)
-                    #different functions
+                    expC0[tidx][i][j] = self.C0[t[j]-1][self.solve(h,i)][j]
                     h = self.getHashFunction()
                     expC1[tidx][i][j] = self.C1[t[j]-1][self.solve(h,i)][j]
         self.C0 = expC0

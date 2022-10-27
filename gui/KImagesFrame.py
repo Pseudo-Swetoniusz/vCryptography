@@ -230,8 +230,8 @@ class MenuWidget(QWidget):
         if(len(intList)!=2):
             print("Wrong number of args")
         else:
-            n,k = intList
-            self.vc = VC(n,n)
+            k,n = intList
+            self.vc = VC(k,n)
             path = self.parent.getOriginalPath()
             if(path == None):
                 print("image not selected!")

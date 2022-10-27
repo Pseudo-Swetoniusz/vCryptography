@@ -23,7 +23,7 @@ def test_permute(n,m,vc: VC):
     # decryptedImg.show_image()
 
 def test_image(filename = "circles.png"):
-    vc = VC(3,3)
+    vc = VC(2,3)
     print("--init")
     # path = f".\\algorithm\\k-images\\test_img\\{filename}"
     path = f"D:\\Rok_Akademicki_22-23\\Praca_Inzynierska\\doku\\obrazy\\{filename}"
@@ -41,19 +41,20 @@ def test_image(filename = "circles.png"):
     # peint result image
     decryptedImg.show_image()
     print("--end")
+
+def test_vectors(r=5,l=3):
+    t = [i+1 for i in range(r)]
+    vectors = [p for p in product(t, repeat=l)]
+    if(len(vectors) != r**l):
+        print("wrong vector construction!!!")
+    print(len(vectors))
+    # print(vectors)
     
 
 
 # test_simple()
 test_image()
-# test_image("penta.png")
 
-# vc = VC(3,3)
-# test_permute(3,3,vc)
 
-# import itertools
-# l = 4
-# r = 3
-# t = [i+1 for i in range(r)]
-# s = [p for p in itertools.product(t, repeat=l)]
-# print(t)
+# test_vectors()
+
