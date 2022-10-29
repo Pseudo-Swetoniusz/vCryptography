@@ -308,7 +308,7 @@ class CombineWidget(QWidget):
         try:
             variableString = self.idxInput.toPlainText()
             indices = list(map(int, variableString.split(' ')))
-            print("combine: ", indices)
+            # print("combine: ", indices)
         except:
             print("failed to get input :(")
             return

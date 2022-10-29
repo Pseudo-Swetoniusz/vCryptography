@@ -46,7 +46,7 @@ class VC():
         self.resImages: List[CImage]
         self.m = 2**(self.k-1)
         self.r = factorial(2**(self.k-1))
-        self.l = ceil(log(n,k))+3
+        self.l = ceil(log(n,k))+2
         # self.vectors = []
         self.hashes = []
         self.C0, self.C1 = [],[]
@@ -104,13 +104,6 @@ class VC():
         key = (first, second, third)
         return(self.translation[key])
 
-    # def constructVectors(self):
-    #     t = [i+1 for i in range(self.r)]
-    #     self.vectors = [p for p in product(t, repeat=self.l)]
-    #     if(len(self.vectors) != self.r**self.l):
-    #         print("wrong vector construction!!!")
-    #     print(len(self.vectors))
-
     def getVector(self):
         t = tuple(1 for i in range(self.l))
         return t
@@ -139,15 +132,22 @@ class VC():
         h = rand.randint(0,self.l-1)
         return h
     
-    def solve(self,h,x):
+    # def solve(self,h,x):
+    #     coeffs = self.hashes[h]
+    #     res = 0
+    #     for exp in range(self.k-1,-1,-1):
+    #         res += coeffs[exp]*pow(x,exp)
+    #         res = res%self.k
+    #     return res
+
+    def solve(self, h, x):
         coeffs = self.hashes[h]
         res = 0
-        for exp in range(self.k-1,-1,-1):
-            res += coeffs[exp]*pow(x,exp)
-            res = res%self.k
-        return res 
-    
-    def getCMatrices(self):
+        for coeff in coeffs: #not necessary to reverse since it's all randomized anyway, right?
+            res = res * x + coeff % self.k
+        return res%self.k
+
+    def kCMatrices(self):
         e = {i for i in range(self.k)}
         comb = []
         for i in range(0,len(e)+1):
@@ -167,32 +167,28 @@ class VC():
                     S0[i][j] = self.DARK
                 if(e[i] in odd[j]):
                     S1[i][j] = self.DARK
-        perms = permutations([i for i in range(self.m)])
+        perms = permutations([i for i in range(self.m)]) #permuting columns
         for permutation in perms:
             self.C0.append(self.permute(S0, permutation))
             self.C1.append(self.permute(S1, permutation))
 
-        # #extending
-        # #sth wrong!!!
-        # colourC0 = [[[] for j in range(self.k)] for i in range(len(self.C0))]
-        # colourC1 = [[[] for j in range(self.k)] for i in range(len(self.C1))]
-        # extension = self.getSizeMulti3()
-        # for i in range(len(self.C0)):
-        #     for j in range(self.k):
-        #         for l in range(0,self.m+extension,3):
-        #             colour = self.getTriple(self.C0,i,j,l)
-        #             colourC0[i][j].append(colour)
-        #             colour = self.getTriple(self.C1,i,j,l)
-        #             colourC1[i][j].append(colour)
-        # self.C0 = colourC0
-        # self.C1 = colourC1
-        # self.m = len(self.C0[0][0])
-        # self.m0, self.m1 = self.factors(self.m)
+    def k2CMatrices(self):
+        self.m = self.n
+        self.m0 = self.m
+        self.m1 = 1
+        S0 = [[self.LIGHT if j>0 else self.DARK for j in range(self.m)] for i in range(self.n)]
+        S1 = [[self.LIGHT if j!=i else self.DARK for j in range(self.m)] for i in range(self.n)]
 
-        # (k,n)
-        # sth wrong!!!
-        # self.constructVectors()
+        perms = permutations([i for i in range(self.m)])
+        for permutation in perms:
+            self.C0.append(self.permute(S0, permutation))
+            self.C1.append(self.permute(S1, permutation))
+        self.r = len(self.C0) #necessary?
+        
+
+    def knCMatrices(self):
         self.constructHashes()
+        print(f"----hashes done: {self.l}")
         expC0, expC1 = [[[[]for i in range(self.m)] for i in range(self.n)] for i in range(self.r**self.l)],[[[[]for i in range(self.m)] for i in range(self.n)] for i in range(self.r**self.l)]
         t = self.getVector()
         for tidx in range(self.r**self.l):
@@ -206,6 +202,38 @@ class VC():
         self.C0 = expC0
         self.C1 = expC1
         self.r = len(self.C0)
+
+    def colourCMatrices(self):
+        colourC0 = [[[] for j in range(self.n)] for i in range(len(self.C0))]
+        colourC1 = [[[] for j in range(self.n)] for i in range(len(self.C1))]
+        extension = self.getSizeMulti3()
+        for i in range(len(self.C0)):
+            for j in range(self.n):
+                for l in range(0,self.m+extension,3):
+                    colour = self.getTriple(self.C0,i,j,l)
+                    colourC0[i][j].append(colour)
+                    colour = self.getTriple(self.C1,i,j,l)
+                    colourC1[i][j].append(colour)
+        self.C0 = colourC0
+        self.C1 = colourC1
+        self.m = len(self.C0[0][0])
+        self.m0, self.m1 = self.factors(self.m)
+        self.r = len(self.C0)
+    
+    def getCMatrices(self):
+        if(self.k==2):
+            self.k2CMatrices()
+            self.colourCMatrices()
+        elif(self.k==self.n):
+            self.kCMatrices()
+            self.colourCMatrices()
+        else:
+            self.kCMatrices()
+            print("----kCMatrices done")
+            self.knCMatrices()
+            print("----knCMatrices done")
+            self.colourCMatrices()
+            print("----colourCMatrices done")
 
     def getRandomShares(self, i, j):
         rand = SystemRandom()
