@@ -287,26 +287,39 @@ class VC():
         self.r = len(self.C0)
         print(self.m, self.m0, self.m1, self.r)
     
-    def getCMatrices(self):
-        if(True):
-            self.getCMarticesImproved()
-            print("----C matrices done")
-            self.colourCMatricesImproved() #colouring makes it imperfect!
-            print("----colouring done")
-        # if(self.k==2):
-        #     self.k2CMatrices()
-        #     self.colourCMatrices()
-        # elif(self.k==self.n):
-        #     self.kCMatrices()
-        #     self.colourCMatrices()
-        # else:
-        #     self.kCMatrices()
-        #     print("----kCMatrices done")
-        #     self.knCMatrices()
-        #     print("----knCMatrices done")
-        #     self.colourCMatrices()
-        #     print("----colourCMatrices done")
+    
+    def improved(self):
+        self.getCMarticesImproved()
+        self.colourCMatricesImproved() #colouring makes it imperfect!
 
+    def conditional(self):
+        if(self.k==2):
+            self.k2CMatrices()
+            self.colourCMatrices()
+        elif(self.k==self.n):
+            self.kCMatrices()
+            self.colourCMatrices()
+        else:
+            self.kCMatrices()
+            print("----kCMatrices done")
+            self.knCMatrices()
+            print("----knCMatrices done")
+            self.colourCMatrices()
+            print("----colourCMatrices done")
+
+    def naorShamir(self):
+        self.kCMatrices()
+        print("----kCMatrices done")
+        self.knCMatrices()
+        print("----knCMatrices done")
+        self.colourCMatrices()
+        print("----colourCMatrices done")
+
+    def getCMatrices(self):
+        self.improved()
+        # self.conditional()
+        # self.naorShamir()
+        
     def getRandomShares(self, i, j):
         rand = SystemRandom()
         tmp = rand.randint(0,self.r-1)
