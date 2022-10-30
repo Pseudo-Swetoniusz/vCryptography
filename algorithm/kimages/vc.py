@@ -2,6 +2,7 @@
 from sys import path
 from typing import List
 from numpy import uint8
+from sympy import false
 path.append(".")
 from utils.BinaryData import *
 from utils.Image import *
@@ -10,6 +11,9 @@ from random import SystemRandom
 from itertools import combinations, permutations, product
 from copy import deepcopy
 from math import log, ceil
+
+from scipy.special import comb
+from sympy.utilities.iterables import multiset_permutations
 
 # value of l and two functions
 
@@ -33,9 +37,9 @@ class VC():
         (DARK, LIGHT, LIGHT): YELLOW,
         (LIGHT, DARK, LIGHT): MAGENTA, 
         (LIGHT, LIGHT, DARK): CYAN, 
-        (LIGHT, DARK, DARK): RED, 
-        (DARK, LIGHT, DARK): GREEN, 
         (DARK, DARK, LIGHT): BLUE, 
+        (DARK, LIGHT, DARK): GREEN, 
+        (LIGHT, DARK, DARK): RED, 
         (DARK, DARK, DARK): BLACK
     }
 
@@ -79,6 +83,9 @@ class VC():
     def add_colour(self, p1, p2):
         x,y,z = ((int(p1[0])*int(p2[0]))//255), ((int(p1[1])*int(p2[1]))//255), ((int(p1[2])*int(p2[2]))//255)
         return [uint8(x),uint8(y), uint8(z)]
+
+    # def add_colour(self, p1, p2): #bw
+    #     return (self.isBlack(p1) or self.isBlack(p2))
 
     def setImage(self, img: CImage):
         self.image = img
@@ -131,14 +138,6 @@ class VC():
         rand = SystemRandom()
         h = rand.randint(0,self.l-1)
         return h
-    
-    # def solve(self,h,x):
-    #     coeffs = self.hashes[h]
-    #     res = 0
-    #     for exp in range(self.k-1,-1,-1):
-    #         res += coeffs[exp]*pow(x,exp)
-    #         res = res%self.k
-    #     return res
 
     def solve(self, h, x):
         coeffs = self.hashes[h]
@@ -147,6 +146,55 @@ class VC():
             res = res * x + coeff % self.k
         return res%self.k
 
+    def newton(self,n,k):
+        return int(comb(n,k))
+    
+    def getUVectors(self):
+        u0,u1 = [0]*(self.n+1),[0]*(self.n+1)
+        if(self.k%2==0): # k even
+            l = (self.k-2)//2
+            for i in range(l+1):
+                u0[self.n-2*i] = self.newton(self.n-2*i-1,self.k-2*i-1)
+                u1[self.n-2*i-1] = self.newton(self.n-2*i-2,self.k-2*i-2)
+            u0[0] = 1
+        else: # k odd
+            l0,l1 = (self.k-3)//2, (self.k-1)//2
+            for i in range(l0+1):
+                u0[self.n-2*i-1] = self.newton(self.n-2*i-2,self.k-2*i-2)
+            u0[0] = 1
+            for i in range(l1+1):
+                u1[self.n-2*i] = self.newton(self.n-2*i-1,self.k-2*i-1)
+        return u0,u1
+    
+    def getBasicSMatrix(self,u): #!!!!!!
+        S = [[] for i in range(self.n)]
+        for j in range(len(u)):
+            if(u[j]>0):
+                if(j>self.n):
+                    print("j>n!!!")
+                    break;
+                col = [self.DARK]*j+[self.LIGHT]*(self.n-j)
+                # col = [1]*j+[0]*(self.n-j)
+                perms = multiset_permutations(col)
+                for p in perms:
+                    for i in range(u[j]):
+                        for idx in range(self.n):
+                            S[idx].append(p[idx])
+        return S
+            
+    def getCMarticesImproved(self):
+        u0,u1 = self.getUVectors()
+        S0,S1 = self.getBasicSMatrix(u0),self.getBasicSMatrix(u1)
+        self.m = len(S0[0])
+        perms = permutations([i for i in range(self.m)]) #permuting columns
+        for permutation in perms:
+            self.C0.append(self.permute(S0, permutation))
+            self.C1.append(self.permute(S1, permutation))
+        self.m = len(self.C0[0][0])
+        self.m0, self.m1 = self.factors(self.m)
+        self.r = len(self.C0)
+        print(self.m, self.m0, self.m1, self.r)
+    
     def kCMatrices(self):
         e = {i for i in range(self.k)}
         comb = []
@@ -219,21 +267,45 @@ class VC():
         self.m = len(self.C0[0][0])
         self.m0, self.m1 = self.factors(self.m)
         self.r = len(self.C0)
+        print(self.m, self.m0, self.m1, self.r)
+
+    def colourCMatricesImproved(self):
+        colourC0 = [[[] for j in range(self.n)] for i in range(self.r)]
+        colourC1 = [[[] for j in range(self.n)] for i in range(self.r)]
+        extension = self.getSizeMulti3()
+        for i in range(self.r):
+            for j in range(self.n):
+                for l in range(0,self.m+extension,3):
+                    colour = self.getTriple(self.C0,i,j,l)
+                    colourC0[i][j].append(colour)
+                    colour = self.getTriple(self.C1,i,j,l)
+                    colourC1[i][j].append(colour)
+        self.C0 = colourC0
+        self.C1 = colourC1
+        self.m = len(self.C0[0][0])
+        self.m0, self.m1 = self.factors(self.m)
+        self.r = len(self.C0)
+        print(self.m, self.m0, self.m1, self.r)
     
     def getCMatrices(self):
-        if(self.k==2):
-            self.k2CMatrices()
-            self.colourCMatrices()
-        elif(self.k==self.n):
-            self.kCMatrices()
-            self.colourCMatrices()
-        else:
-            self.kCMatrices()
-            print("----kCMatrices done")
-            self.knCMatrices()
-            print("----knCMatrices done")
-            self.colourCMatrices()
-            print("----colourCMatrices done")
+        if(True):
+            self.getCMarticesImproved()
+            print("----C matrices done")
+            self.colourCMatricesImproved() #colouring makes it imperfect!
+            print("----colouring done")
+        # if(self.k==2):
+        #     self.k2CMatrices()
+        #     self.colourCMatrices()
+        # elif(self.k==self.n):
+        #     self.kCMatrices()
+        #     self.colourCMatrices()
+        # else:
+        #     self.kCMatrices()
+        #     print("----kCMatrices done")
+        #     self.knCMatrices()
+        #     print("----knCMatrices done")
+        #     self.colourCMatrices()
+        #     print("----colourCMatrices done")
 
     def getRandomShares(self, i, j):
         rand = SystemRandom()
