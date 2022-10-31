@@ -1,7 +1,7 @@
 
 from sys import path
 from typing import List
-from numpy import uint8
+from numpy import uint8,uint16
 from sympy import false
 path.append(".")
 from utils.BinaryData import *
@@ -18,7 +18,8 @@ from sympy.utilities.iterables import multiset_permutations
 # value of l and two functions
 
 class VC():
-    TYPE  = uint8
+    TYPE = uint8  
+    TYPE2 = uint16
 
     DARK = tuple(map(TYPE, ['0','0','0']))
     LIGHT = tuple(map(TYPE, ['255','255','255']))
@@ -74,18 +75,17 @@ class VC():
             i-=1
         return i, n//i
     
-    def max_min(self,m,n):
+    def maxMin(self,m,n):
         m = m+n
         n = m-n
         m = m-n
         return m,n
     
-    def add_colour(self, p1, p2):
-        x,y,z = ((int(p1[0])*int(p2[0]))//255), ((int(p1[1])*int(p2[1]))//255), ((int(p1[2])*int(p2[2]))//255)
-        return [uint8(x),uint8(y), uint8(z)]
-
-    # def add_colour(self, p1, p2): #bw
-    #     return (self.isBlack(p1) or self.isBlack(p2))
+    def addColour(self, p1, p2):
+        a = list(map(self.TYPE2,p1))
+        b = list(map(self.TYPE2,p2))
+        x,y,z = ((a[0]*b[0])//255), ((a[1]*b[1])//255), ((a[2]*b[2])//255)
+        return [self.TYPE(x),self.TYPE(y), self.TYPE(z)]
 
     def setImage(self, img: CImage):
         self.image = img
