@@ -93,7 +93,7 @@ class TestUnitVC(unittest.TestCase):
         self.testFactors()
         self.testAddColour()
         self.testGetSizeMulti3()
-
+        self.testPermute(16,20)
         print("--end")
     
     def getRandPixel(self):
@@ -121,13 +121,15 @@ class TestUnitVC(unittest.TestCase):
             print("FAILS: ",p,p1,p2)
         self.assertTrue(b)
 
-    def testPermute(n,m,vc: VC):
+    def testPermute(self,n,m):
         print("--permute")
         permutation = [i for i in range(m)]
         shuffle(permutation)
         S = [[randint(1,100) for j in range(m)] for i in range(n)]
-        newS = vc.permute(S, permutation)
-        #odwrócić???
+        newS = self.vc.permute(S, permutation)
+        for col in range(m):
+            for i in range(n):
+                self.assertEqual(newS[i][col], S[i][permutation[col]])
 
     def testGetSizeMulti3(self,t=100):
         print("--extension")

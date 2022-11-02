@@ -75,11 +75,11 @@ class VC():
             i-=1
         return i, n//i
     
-    def maxMin(self,m,n):
-        m = m+n
-        n = m-n
-        m = m-n
-        return m,n
+    # def maxMin(self,m,n):
+    #     m = m+n
+    #     n = m-n
+    #     m = m-n
+    #     return m,n
     
     def addColour(self, p1, p2):
         a = list(map(self.TYPE2,p1))
@@ -352,7 +352,7 @@ class VC():
         res = deepcopy(img1)
         for i in range(img1.height):
             for j in range(img1.width):
-                res.image_matrix[i][j] = self.add_colour(img1[i,j],img2[i,j])
+                res.image_matrix[i][j] = self.addColour(img1[i,j],img2[i,j])
         return res
 
     def combineShares(self):
