@@ -179,13 +179,14 @@ class MenuWidget(QWidget):
         self.imageButton.setMaximumWidth(3*height)
         self.imageButton.setText("Load Original")
         self.imageButton.clicked.connect(self.loadImage)
-        self.startButton = QPushButton(self)
+        # self.startButton = QPushButton(self)
+        self.startButton = StartWidget(self)
         self.startButton.setMinimumHeight(height)
-        self.startButton.setMaximumHeight(height)
+        # self.startButton.setMaximumHeight(height)
         self.startButton.setMinimumWidth(3*height)
-        self.startButton.setMaximumWidth(3*height)
-        self.startButton.setText("Run")
-        self.startButton.clicked.connect(self.run)
+        # self.startButton.setMaximumWidth(3*height)
+        # self.startButton.setText("Run")
+        # self.startButton.clicked.connect(self.run)
         self.shareWidget = ShareWidget(self)
         self.shareImage = QLabel(self)
         # self.shareImage.setMinimumHeight(self.width*0.8)
@@ -220,7 +221,7 @@ class MenuWidget(QWidget):
         else:
             print('load image error')
 
-    def run(self):
+    def run(self, mode=3):
         try:
             variableString = self.variableInput.toPlainText()
             intList = list(map(int, variableString.split(' ')))
@@ -231,7 +232,7 @@ class MenuWidget(QWidget):
             print("Wrong number of args")
         else:
             k,n = intList
-            self.vc = VC(k,n)
+            self.vc = VC(k,n,mode)
             path = self.parent.getOriginalPath()
             if(path == None):
                 print("image not selected!")
@@ -243,6 +244,15 @@ class MenuWidget(QWidget):
             self.decryptedImg = self.vc.combineShares()
             self.parent.setResult(self.decryptedImg.get_pixmap())
             self.prepareShares()
+
+    def setClassic(self):
+        self.run(1)
+
+    def setMixed(self):
+        self.run(2)
+
+    def setImproved(self):
+        self.run(3)
     
     def setShare(self):
         pixmap = self.shares[self.shareIndex].get_pixmap()
@@ -319,6 +329,44 @@ class CombineWidget(QWidget):
             print("problem combining")
         
 
+class StartWidget(QWidget):
+    def __init__(self, parent: KImagesFrame):
+        super().__init__(parent)
+        self.parent = parent
+        self.classicButton = None
+        self.mixedButton = None
+        self.improvedButton = None
+        self.initUI()
+
+    def initUI(self):
+        self.setMinimumWidth(400)
+        self.setStyleSheet("background:#3a3a3a; border: 3px solid #323232;")
+        self.setMaximumHeight(100)
+        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+        layout = QVBoxLayout()
+        layout.setAlignment(Qt.AlignTop)
+        self.createHorizontalLayout()
+        layout.addWidget(self.horizontalGroupBox)
+        self.setLayout(layout)
+
+    def createHorizontalLayout(self):
+        self.horizontalGroupBox = QGroupBox()
+        layout = QHBoxLayout()
+        self.horizontalGroupBox.setMinimumHeight(100)
+        self.horizontalGroupBox.setMaximumHeight(100)
+        self.classicButton = QPushButton('Classic', self)
+        self.classicButton.clicked.connect(self.parent.setClassic)
+        layout.addWidget(self.classicButton)
+        self.mixedButton = QPushButton('Mixed', self)
+        self.mixedButton.clicked.connect(self.parent.setMixed)
+        layout.addWidget(self.mixedButton)
+        self.improvedButton = QPushButton('Inproved', self)
+        self.improvedButton.clicked.connect(self.parent.setImproved)
+        layout.addWidget(self.improvedButton)
+
+        self.horizontalGroupBox.setLayout(layout)
+
+
 class ShareWidget(QWidget):
     def __init__(self, parent: KImagesFrame):
         super().__init__(parent)
@@ -337,9 +385,7 @@ class ShareWidget(QWidget):
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignTop)
         self.createHorizontalLayout()
-        # self.shares = QGraphicsView(self)
         layout.addWidget(self.horizontalGroupBox)
-        # layout.addWidget(self.shares)
         self.setLayout(layout)
 
     def createHorizontalLayout(self):
