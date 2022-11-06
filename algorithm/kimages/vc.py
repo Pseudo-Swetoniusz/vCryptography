@@ -44,7 +44,7 @@ class VC():
         (DARK, DARK, DARK): BLACK
     }
 
-    def __init__(self,k: int, n: int):
+    def __init__(self,k: int, n: int, mode: int = 3):
         self.n = n #liczba podobrazów
         self.k = k # liczba podobrazów koniecznych do odkrycia sekretu
         self.image: CImage
@@ -52,11 +52,10 @@ class VC():
         self.m = 2**(self.k-1)
         self.r = factorial(2**(self.k-1))
         self.l = ceil(log(n,k))+2
-        # self.vectors = []
         self.hashes = []
         self.C0, self.C1 = [],[]
         self.S0, self.S1 = [],[]
-        self.getCMatrices()
+        self.getCMatrices(mode)
         self.m0 = self.m
         self.m1 = 1
 
@@ -68,18 +67,11 @@ class VC():
         self.resImages = [deepcopy(img) for i in range(self.n)]
         return self.encrypt()
     
-    
     def factors(self,n):
         i = int(n**0.5)
         while(n%i!=0):
             i-=1
         return i, n//i
-    
-    # def maxMin(self,m,n):
-    #     m = m+n
-    #     n = m-n
-    #     m = m-n
-    #     return m,n
     
     def addColour(self, p1, p2):
         a = list(map(self.TYPE2,p1))
@@ -125,10 +117,8 @@ class VC():
                 newT[i] = 1
         return tuple(newT[i] for i in range(self.l))
 
-
     def constructHashes(self):
         for i in range(self.l):
-            # p = 6113 #large prime
             p = 331
             rand = SystemRandom()
             coeffs = [rand.randint(0,p) for i in range(self.k)]
@@ -142,7 +132,7 @@ class VC():
     def solve(self, h, x):
         coeffs = self.hashes[h]
         res = 0
-        for coeff in coeffs: #not necessary to reverse since it's all randomized anyway, right?
+        for coeff in coeffs:
             res = res * x + coeff % self.k
         return res%self.k
 
@@ -166,7 +156,7 @@ class VC():
                 u1[self.n-2*i] = self.newton(self.n-2*i-1,self.k-2*i-1)
         return u0,u1
     
-    def getBasicSMatrix(self,u): #!!!!!!
+    def getBasicSMatrix(self,u):
         S = [[] for i in range(self.n)]
         for j in range(len(u)):
             if(u[j]>0):
@@ -174,7 +164,6 @@ class VC():
                     print("j>n!!!")
                     break;
                 col = [self.DARK]*j+[self.LIGHT]*(self.n-j)
-                # col = [1]*j+[0]*(self.n-j)
                 perms = multiset_permutations(col)
                 for p in perms:
                     for i in range(u[j]):
@@ -231,12 +220,10 @@ class VC():
         for permutation in perms:
             self.C0.append(self.permute(S0, permutation))
             self.C1.append(self.permute(S1, permutation))
-        self.r = len(self.C0) #necessary?
-        
+        self.r = len(self.C0)
 
     def knCMatrices(self):
         self.constructHashes()
-        print(f"----hashes done: {self.l}")
         expC0, expC1 = [[[[]for i in range(self.m)] for i in range(self.n)] for i in range(self.r**self.l)],[[[[]for i in range(self.m)] for i in range(self.n)] for i in range(self.r**self.l)]
         t = self.getVector()
         for tidx in range(self.r**self.l):
@@ -287,10 +274,9 @@ class VC():
         self.r = len(self.C0)
         print(self.m, self.m0, self.m1, self.r)
     
-    
     def improved(self):
         self.getCMarticesImproved()
-        self.colourCMatricesImproved() #colouring makes it imperfect!
+        self.colourCMatricesImproved()
 
     def conditional(self):
         if(self.k==2):
@@ -301,24 +287,21 @@ class VC():
             self.colourCMatrices()
         else:
             self.kCMatrices()
-            print("----kCMatrices done")
             self.knCMatrices()
-            print("----knCMatrices done")
             self.colourCMatrices()
-            print("----colourCMatrices done")
 
     def naorShamir(self):
         self.kCMatrices()
-        print("----kCMatrices done")
         self.knCMatrices()
-        print("----knCMatrices done")
         self.colourCMatrices()
-        print("----colourCMatrices done")
 
-    def getCMatrices(self):
-        self.improved()
-        # self.conditional()
-        # self.naorShamir()
+    def getCMatrices(self, mode = 3):
+        if(mode==1):
+            self.naorShamir()
+        elif(mode==2):
+            self.conditional()
+        else:
+            self.improved()
         
     def getRandomShares(self, i, j):
         rand = SystemRandom()

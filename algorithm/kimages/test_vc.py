@@ -24,7 +24,7 @@ def test_permute(n,m,vc: VC):
 
 def test_image(filename = "circles.png"):
     vc = VC(2,3)
-    # vc = VC(3,6)
+    # vc = VC(3,4)
     print("--init")
     # path = f".\\algorithm\\k-images\\test_img\\{filename}"
     path = f"D:\\Rok_Akademicki_22-23\\Praca_Inzynierska\\doku\\obrazy\\{filename}"
@@ -56,49 +56,3 @@ def test_vectors(r=5,l=3):
 # test_simple()
 test_image()
 
-
-# test_vectors()
-# class testVC():
-#     def __init__(self):
-#         self.n = 3
-#         self.k = 2
-
-#     def newton(self,n,k):
-#         return int(comb(n,k))
-    
-#     def getUVectors(self):
-#         u0,u1 = [0]*(self.n+1),[0]*(self.n+1)
-#         if(self.k%2==0): # k even
-#             l = (self.k-2)//2
-#             for i in range(l+1):
-#                 u0[self.n-2*i] = self.newton(self.n-2*i-1,self.k-2*i-1)
-#                 u1[self.n-2*i-1] = self.newton(self.n-2*i-2,self.k-2*i-2)
-#             u0[0] = 1
-#         else: # k odd
-#             l0,l1 = (self.k-3)//2, (self.k-1)//2
-#             for i in range(l0+1):
-#                 u0[self.n-2*i-1] = self.newton(self.n-2*i-2,self.k-2*i-2)
-#             u0[0] = 1
-#             for i in range(l1+1):
-#                 u1[self.n-2*i] = self.newton(self.n-2*i-1,self.k-2*i-1)
-#         return u0,u1
-    
-#     def getBasicSMatrix(self,u): #!!!!!!
-#         S = [[] for i in range(self.n)]
-#         for j in range(len(u)):
-#             if(u[j]>0):
-#                 if(j>self.n):
-#                     print("j>n!!!")
-#                     break;
-#                 col = [1]*j+[0]*(self.n-j)
-#                 perms = multiset_permutations(col)
-#                 for p in perms:
-#                     for i in range(u[j]):
-#                         for idx in range(self.n):
-#                             S[idx].append(p[idx])
-#         return S
-
-# tv = testVC()
-# u,v = tv.getUVectors()
-# S0 = tv.getBasicSMatrix(u)
-# print(S0)
