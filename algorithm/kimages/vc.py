@@ -205,6 +205,7 @@ class VC():
                 if(e[i] in odd[j]):
                     S1[i][j] = self.DARK
         perms = permutations([i for i in range(self.m)]) #permuting columns
+        self.m = len(S0[0])
         for permutation in perms:
             self.C0.append(self.permute(S0, permutation))
             self.C1.append(self.permute(S1, permutation))
@@ -227,13 +228,13 @@ class VC():
         expC0, expC1 = [[[[]for i in range(self.m)] for i in range(self.n)] for i in range(self.r**self.l)],[[[[]for i in range(self.m)] for i in range(self.n)] for i in range(self.r**self.l)]
         t = self.getVector()
         for tidx in range(self.r**self.l):
-            t = self.incrementVector(t)
             for i in range(self.n):
                 for j in range(self.m):
                     h = self.getHashFunction()
-                    expC0[tidx][i][j] = self.C0[t[j]-1][self.solve(h,i)][j]
+                    expC0[tidx][i][j] = self.C0[t[j%self.l]-1][self.solve(h,i)][j]
                     h = self.getHashFunction()
-                    expC1[tidx][i][j] = self.C1[t[j]-1][self.solve(h,i)][j]
+                    expC1[tidx][i][j] = self.C1[t[j%self.l]-1][self.solve(h,i)][j]
+            t = self.incrementVector(t)
         self.C0 = expC0
         self.C1 = expC1
         self.r = len(self.C0)
@@ -286,14 +287,12 @@ class VC():
             self.kCMatrices()
             self.colourCMatrices()
         else:
-            self.kCMatrices()
-            self.knCMatrices()
-            self.colourCMatrices()
+            self.naorShamir()
 
     def naorShamir(self):
         self.kCMatrices()
         self.knCMatrices()
-        self.colourCMatrices()
+        # self.colourCMatrices()
 
     def getCMatrices(self, mode = 3):
         if(mode==1):

@@ -270,14 +270,24 @@ class MenuWidget(QWidget):
         self.shareWidget.setLabel(self.shareIndex)
 
     def setPrev(self):
-        self.shareIndex = (self.shareIndex-1)%self.shareSize
-        self.setShare()
-        self.shareWidget.setLabel(self.shareIndex)
+        try:
+            self.shareIndex = (self.shareIndex-1)%self.shareSize
+            self.setShare()
+            self.shareWidget.setLabel(self.shareIndex)
+        except ZeroDivisionError:
+            print("No shares to show!")
+        except:
+            print("Next share error")
 
     def setNext(self):
-        self.shareIndex = (self.shareIndex+1)%self.shareSize
-        self.setShare()
-        self.shareWidget.setLabel(self.shareIndex)
+        try:
+            self.shareIndex = (self.shareIndex+1)%self.shareSize
+            self.setShare()
+            self.shareWidget.setLabel(self.shareIndex)
+        except ZeroDivisionError:
+            print("No shares to show!")
+        except:
+            print("Next share error")
 
 class CombineWidget(QWidget):
     def __init__(self,parent: KImagesFrame):
@@ -344,7 +354,8 @@ class StartWidget(QWidget):
         self.setMaximumHeight(100)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
         layout = QVBoxLayout()
-        layout.setAlignment(Qt.AlignTop)
+        # layout.setAlignment(Qt.AlignTop)
+        layout.setAlignment(Qt.AlignHCenter)
         self.createHorizontalLayout()
         layout.addWidget(self.horizontalGroupBox)
         self.setLayout(layout)
@@ -352,15 +363,16 @@ class StartWidget(QWidget):
     def createHorizontalLayout(self):
         self.horizontalGroupBox = QGroupBox()
         layout = QHBoxLayout()
-        self.horizontalGroupBox.setMinimumHeight(100)
-        self.horizontalGroupBox.setMaximumHeight(100)
+        layout.setAlignment(Qt.AlignHCenter)
+        self.horizontalGroupBox.setMinimumHeight(60)
+        self.horizontalGroupBox.setMaximumHeight(60)
         self.classicButton = QPushButton('Classic', self)
         self.classicButton.clicked.connect(self.parent.setClassic)
         layout.addWidget(self.classicButton)
         self.mixedButton = QPushButton('Mixed', self)
         self.mixedButton.clicked.connect(self.parent.setMixed)
         layout.addWidget(self.mixedButton)
-        self.improvedButton = QPushButton('Inproved', self)
+        self.improvedButton = QPushButton('Improved', self)
         self.improvedButton.clicked.connect(self.parent.setImproved)
         layout.addWidget(self.improvedButton)
 

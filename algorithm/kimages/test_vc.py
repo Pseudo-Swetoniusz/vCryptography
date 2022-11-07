@@ -23,7 +23,7 @@ def test_permute(n,m,vc: VC):
     # decryptedImg.show_image()
 
 def test_image(filename = "circles.png"):
-    vc = VC(2,3,1)
+    vc = VC(3,3,1)
     # vc = VC(3,4)
     print("--init")
     # path = f".\\algorithm\\k-images\\test_img\\{filename}"

@@ -2,7 +2,7 @@ import sys
 from PyQt5.QtWidgets import QApplication
 
 from gui.MainWindow import MainWindow
-# classic 3,3 not working
+# window sizes!!!
 
 def main(arg):
     app = QApplication(arg)
