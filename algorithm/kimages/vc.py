@@ -44,7 +44,7 @@ class VC():
         (DARK, DARK, DARK): BLACK
     }
 
-    def __init__(self,k: int, n: int, mode: int = 3):
+    def __init__(self,k: int, n: int, mode: int = 3, colour = 0):
         self.n = n #liczba podobrazów
         self.k = k # liczba podobrazów koniecznych do odkrycia sekretu
         self.image: CImage
@@ -55,7 +55,7 @@ class VC():
         self.hashes = []
         self.C0, self.C1 = [],[]
         self.S0, self.S1 = [],[]
-        self.getCMatrices(mode)
+        self.getCMatrices(mode,colour)
         self.m0 = self.m
         self.m1 = 1
 
@@ -275,32 +275,36 @@ class VC():
         self.r = len(self.C0)
         print(self.m, self.m0, self.m1, self.r)
     
-    def improved(self):
+    def improved(self, colour):
         self.getCMarticesImproved()
-        self.colourCMatricesImproved()
+        if(colour):
+            self.colourCMatricesImproved()
 
-    def conditional(self):
+    def conditional(self, colour):
         if(self.k==2):
             self.k2CMatrices()
-            self.colourCMatrices()
+            if(colour):
+                self.colourCMatrices()
         elif(self.k==self.n):
             self.kCMatrices()
-            self.colourCMatrices()
+            if(colour):
+                self.colourCMatrices()
         else:
-            self.naorShamir()
+            self.naorShamir(colour)
 
-    def naorShamir(self):
+    def naorShamir(self, colour):
         self.kCMatrices()
         self.knCMatrices()
-        # self.colourCMatrices()
+        if(colour):
+            self.colourCMatrices()
 
-    def getCMatrices(self, mode = 3):
+    def getCMatrices(self, mode = 3, colour = 1):
         if(mode==1):
-            self.naorShamir()
+            self.naorShamir(colour)
         elif(mode==2):
-            self.conditional()
+            self.conditional(colour)
         else:
-            self.improved()
+            self.improved(colour)
         
     def getRandomShares(self, i, j):
         rand = SystemRandom()

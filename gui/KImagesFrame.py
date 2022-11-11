@@ -179,14 +179,11 @@ class MenuWidget(QWidget):
         self.imageButton.setMaximumWidth(3*height)
         self.imageButton.setText("Load Original")
         self.imageButton.clicked.connect(self.loadImage)
-        # self.startButton = QPushButton(self)
-        self.startButton = StartWidget(self)
-        self.startButton.setMinimumHeight(height)
-        # self.startButton.setMaximumHeight(height)
+        self.startButton = QPushButton(self)
+        self.startButton.setMaximumHeight(height)
         self.startButton.setMinimumWidth(3*height)
-        # self.startButton.setMaximumWidth(3*height)
-        # self.startButton.setText("Run")
-        # self.startButton.clicked.connect(self.run)
+        self.startButton.setText("Run")
+        self.startButton.clicked.connect(self.run)
         self.shareWidget = ShareWidget(self)
         self.shareImage = QLabel(self)
         # self.shareImage.setMinimumHeight(self.width*0.8)
@@ -221,21 +218,25 @@ class MenuWidget(QWidget):
         else:
             print('load image error')
 
-    def run(self, mode=3):
+    def run(self):
         try:
             variableString = self.variableInput.toPlainText()
-            intList = list(map(int, variableString.split(' ')))
+            argList = variableString.split(' ')
+            intList = list(map(int, argList[:2]))
+            argList = argList[2:]
         except:
-            print("failed to get args :(")
+            print("Failed to get arguments.")
             return
-        if(len(intList)!=2):
-            print("Wrong number of args")
+        if(len(intList) != 2):
+            print("Incorrect arguments. Please use the following format: <k> <n> <algorithm: C | M | I> <colour: bw | cbw>")
         else:
             k,n = intList
-            self.vc = VC(k,n,mode)
+            mode = 1 if argList[0]=='C' else 2 if argList[0]=='M' else 3
+            colour = 1 if (argList[1]=='cbw' or argList[1]=='colour' or argList[1]=='C') else 0
+            self.vc = VC(k,n,mode,colour)
             path = self.parent.getOriginalPath()
             if(path == None):
-                print("image not selected!")
+                print("Image not selected!")
                 return
             img = CImage()
             img.read_image(path)
@@ -245,14 +246,14 @@ class MenuWidget(QWidget):
             self.parent.setResult(self.decryptedImg.get_pixmap())
             self.prepareShares()
 
-    def setClassic(self):
-        self.run(1)
+    # def setClassic(self):
+    #     self.run(1)
 
-    def setMixed(self):
-        self.run(2)
+    # def setMixed(self):
+    #     self.run(2)
 
-    def setImproved(self):
-        self.run(3)
+    # def setImproved(self):
+    #     self.run(3)
     
     def setShare(self):
         pixmap = self.shares[self.shareIndex].get_pixmap()
@@ -339,44 +340,44 @@ class CombineWidget(QWidget):
             print("problem combining")
         
 
-class StartWidget(QWidget):
-    def __init__(self, parent: KImagesFrame):
-        super().__init__(parent)
-        self.parent = parent
-        self.classicButton = None
-        self.mixedButton = None
-        self.improvedButton = None
-        self.initUI()
+# class StartWidget(QWidget):
+#     def __init__(self, parent: KImagesFrame):
+#         super().__init__(parent)
+#         self.parent = parent
+#         self.classicButton = None
+    #     self.mixedButton = None
+    #     self.improvedButton = None
+    #     self.initUI()
 
-    def initUI(self):
-        self.setMinimumWidth(400)
-        self.setStyleSheet("background:#3a3a3a; border: 3px solid #323232;")
-        self.setMaximumHeight(100)
-        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
-        layout = QVBoxLayout()
-        # layout.setAlignment(Qt.AlignTop)
-        layout.setAlignment(Qt.AlignHCenter)
-        self.createHorizontalLayout()
-        layout.addWidget(self.horizontalGroupBox)
-        self.setLayout(layout)
+    # def initUI(self):
+    #     self.setMinimumWidth(400)
+    #     self.setStyleSheet("background:#3a3a3a; border: 3px solid #323232;")
+    #     self.setMaximumHeight(100)
+    #     self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+    #     layout = QVBoxLayout()
+    #     # layout.setAlignment(Qt.AlignTop)
+    #     layout.setAlignment(Qt.AlignHCenter)
+    #     self.createHorizontalLayout()
+    #     layout.addWidget(self.horizontalGroupBox)
+    #     self.setLayout(layout)
 
-    def createHorizontalLayout(self):
-        self.horizontalGroupBox = QGroupBox()
-        layout = QHBoxLayout()
-        layout.setAlignment(Qt.AlignHCenter)
-        self.horizontalGroupBox.setMinimumHeight(60)
-        self.horizontalGroupBox.setMaximumHeight(60)
-        self.classicButton = QPushButton('Classic', self)
-        self.classicButton.clicked.connect(self.parent.setClassic)
-        layout.addWidget(self.classicButton)
-        self.mixedButton = QPushButton('Mixed', self)
-        self.mixedButton.clicked.connect(self.parent.setMixed)
-        layout.addWidget(self.mixedButton)
-        self.improvedButton = QPushButton('Improved', self)
-        self.improvedButton.clicked.connect(self.parent.setImproved)
-        layout.addWidget(self.improvedButton)
+    # def createHorizontalLayout(self):
+    #     self.horizontalGroupBox = QGroupBox()
+    #     layout = QHBoxLayout()
+    #     layout.setAlignment(Qt.AlignHCenter)
+    #     self.horizontalGroupBox.setMinimumHeight(60)
+    #     self.horizontalGroupBox.setMaximumHeight(60)
+    #     self.classicButton = QPushButton('Classic', self)
+    #     self.classicButton.clicked.connect(self.parent.setClassic)
+    #     layout.addWidget(self.classicButton)
+    #     self.mixedButton = QPushButton('Mixed', self)
+    #     self.mixedButton.clicked.connect(self.parent.setMixed)
+    #     layout.addWidget(self.mixedButton)
+    #     self.improvedButton = QPushButton('Improved', self)
+    #     self.improvedButton.clicked.connect(self.parent.setImproved)
+    #     layout.addWidget(self.improvedButton)
 
-        self.horizontalGroupBox.setLayout(layout)
+    #     self.horizontalGroupBox.setLayout(layout)
 
 
 class ShareWidget(QWidget):
