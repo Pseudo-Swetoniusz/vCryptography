@@ -2,13 +2,12 @@
 from sys import path
 from typing import List
 from numpy import uint8,uint16
-from sympy import false
 path.append(".")
 from utils.BinaryData import *
 from utils.Image import *
 from math import factorial
 from random import SystemRandom
-from itertools import combinations, permutations, product
+from itertools import combinations, permutations
 from copy import deepcopy
 from math import log, ceil
 
@@ -44,7 +43,7 @@ class VC():
         (DARK, DARK, DARK): BLACK
     }
 
-    def __init__(self,k: int, n: int, mode: int = 3, colour = 0):
+    def __init__(self,k: int, n: int, mode: int = 3):
         self.n = n #liczba podobrazów
         self.k = k # liczba podobrazów koniecznych do odkrycia sekretu
         self.image: CImage
@@ -55,9 +54,9 @@ class VC():
         self.hashes = []
         self.C0, self.C1 = [],[]
         self.S0, self.S1 = [],[]
-        self.getCMatrices(mode,colour)
         self.m0 = self.m
         self.m1 = 1
+        self.getCMatrices(mode)
 
     def __call__(self, img: CImage):
         self.setImage(img)
@@ -159,10 +158,7 @@ class VC():
     def getBasicSMatrix(self,u):
         S = [[] for i in range(self.n)]
         for j in range(len(u)):
-            if(u[j]>0):
-                if(j>self.n):
-                    print("j>n!!!")
-                    break;
+            if(u[j]>0 and j<=self.n):
                 col = [self.DARK]*j+[self.LIGHT]*(self.n-j)
                 perms = multiset_permutations(col)
                 for p in perms:
@@ -171,7 +167,7 @@ class VC():
                             S[idx].append(p[idx])
         return S
             
-    def getCMarticesImproved(self):
+    def getCMatricesImproved(self):
         u0,u1 = self.getUVectors()
         S0,S1 = self.getBasicSMatrix(u0),self.getBasicSMatrix(u1)
         self.m = len(S0[0])
@@ -179,10 +175,10 @@ class VC():
         for permutation in perms:
             self.C0.append(self.permute(S0, permutation))
             self.C1.append(self.permute(S1, permutation))
-        self.m = len(self.C0[0][0])
+        assert(self.m, len(self.C0[0][0]))
         self.m0, self.m1 = self.factors(self.m)
         self.r = len(self.C0)
-        print(self.m, self.m0, self.m1, self.r)
+        # print(self.m, self.m0, self.m1, self.r)
     
     def kCMatrices(self):
         e = {i for i in range(self.k)}
@@ -209,6 +205,9 @@ class VC():
         for permutation in perms:
             self.C0.append(self.permute(S0, permutation))
             self.C1.append(self.permute(S1, permutation))
+        self.r = factorial(self.m)
+        assert(self.r == len(self.C0))
+        assert(self.r == len(self.C1))
 
     def k2CMatrices(self):
         self.m = self.n
@@ -222,6 +221,7 @@ class VC():
             self.C0.append(self.permute(S0, permutation))
             self.C1.append(self.permute(S1, permutation))
         self.r = len(self.C0)
+        assert(self.r == factorial(self.m))
 
     def knCMatrices(self):
         self.constructHashes()
@@ -237,27 +237,10 @@ class VC():
             t = self.incrementVector(t)
         self.C0 = expC0
         self.C1 = expC1
+        assert(self.r == len(self.C0))
         self.r = len(self.C0)
 
     def colourCMatrices(self):
-        colourC0 = [[[] for j in range(self.n)] for i in range(len(self.C0))]
-        colourC1 = [[[] for j in range(self.n)] for i in range(len(self.C1))]
-        extension = self.getSizeMulti3()
-        for i in range(len(self.C0)):
-            for j in range(self.n):
-                for l in range(0,self.m+extension,3):
-                    colour = self.getTriple(self.C0,i,j,l)
-                    colourC0[i][j].append(colour)
-                    colour = self.getTriple(self.C1,i,j,l)
-                    colourC1[i][j].append(colour)
-        self.C0 = colourC0
-        self.C1 = colourC1
-        self.m = len(self.C0[0][0])
-        self.m0, self.m1 = self.factors(self.m)
-        self.r = len(self.C0)
-        print(self.m, self.m0, self.m1, self.r)
-
-    def colourCMatricesImproved(self):
         colourC0 = [[[] for j in range(self.n)] for i in range(self.r)]
         colourC1 = [[[] for j in range(self.n)] for i in range(self.r)]
         extension = self.getSizeMulti3()
@@ -271,40 +254,34 @@ class VC():
         self.C0 = colourC0
         self.C1 = colourC1
         self.m = len(self.C0[0][0])
-        self.m0, self.m1 = self.factors(self.m)
-        self.r = len(self.C0)
-        print(self.m, self.m0, self.m1, self.r)
+        self.m1, self.m0 = self.factors(self.m)
     
-    def improved(self, colour):
-        self.getCMarticesImproved()
-        if(colour):
-            self.colourCMatricesImproved()
+    def improved(self):
+        self.getCMatricesImproved()
+        self.colourCMatrices()
 
-    def conditional(self, colour):
+    def conditional(self):
         if(self.k==2):
             self.k2CMatrices()
-            if(colour):
-                self.colourCMatrices()
+            self.colourCMatrices()
         elif(self.k==self.n):
             self.kCMatrices()
-            if(colour):
-                self.colourCMatrices()
+            self.colourCMatrices()
         else:
-            self.naorShamir(colour)
+            self.naorShamir()
 
-    def naorShamir(self, colour):
+    def naorShamir(self):
         self.kCMatrices()
         self.knCMatrices()
-        if(colour):
-            self.colourCMatrices()
+        self.colourCMatrices()
 
-    def getCMatrices(self, mode = 3, colour = 1):
+    def getCMatrices(self, mode = 3):
         if(mode==1):
-            self.naorShamir(colour)
+            self.naorShamir()
         elif(mode==2):
-            self.conditional(colour)
+            self.conditional()
         else:
-            self.improved(colour)
+            self.improved()
         
     def getRandomShares(self, i, j):
         rand = SystemRandom()

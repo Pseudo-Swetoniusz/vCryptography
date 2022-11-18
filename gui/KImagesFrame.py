@@ -223,17 +223,16 @@ class MenuWidget(QWidget):
             variableString = self.variableInput.toPlainText()
             argList = variableString.split(' ')
             intList = list(map(int, argList[:2]))
-            argList = argList[2:]
+            arg = argList[2]
         except:
             print("Failed to get arguments.")
             return
         if(len(intList) != 2):
-            print("Incorrect arguments. Please use the following format: <k> <n> <algorithm: C | M | I> <colour: bw | cbw>")
+            print("Incorrect arguments. Please use the following format: <k> <n> <algorithm: C | M | I>")
         else:
             k,n = intList
-            mode = 1 if argList[0]=='C' else 2 if argList[0]=='M' else 3
-            colour = 1 if (argList[1]=='cbw' or argList[1]=='colour' or argList[1]=='C') else 0
-            self.vc = VC(k,n,mode,colour)
+            mode = 1 if arg[0]=='C' else 2 if arg[0]=='M' else 3
+            self.vc = VC(k,n,mode)
             path = self.parent.getOriginalPath()
             if(path == None):
                 print("Image not selected!")

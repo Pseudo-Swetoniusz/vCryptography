@@ -8,20 +8,6 @@ def test_permute(n,m,vc: VC):
     newS = vc.permute(S, permutation)
     print(f"S = {S}\np = {permutation}\n=> {newS}")
 
-# def test_simple():
-    # vc = VC(3,3)
-    # array = np.asarray([   [BLACK, OTHER, OTHER],
-    #             [BLACK, BLACK, BLACK],
-    #             [OTHER, BLACK, OTHER] ])
-    # img = CImage()
-    # img.update_matrix(array)
-    # img.width, img.height = 3,3
-    # img.update_image()
-
-    # shares = vc(img)
-    # decryptedImg = vc.combineShares()
-    # decryptedImg.show_image()
-
 def test_image(filename = "circles.png"):
     vc = VC(3,3,1)
     # vc = VC(3,4)

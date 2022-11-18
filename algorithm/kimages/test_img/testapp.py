@@ -1,4 +1,3 @@
-from msilib.schema import Error
 import unittest
 from sys import path
 path.append(".")
@@ -8,7 +7,6 @@ from random import randint, sample, shuffle
 
 
 class TestVC(unittest.TestCase):
-
     def main(self):
         print("--init main")
         self.test_black_recon()
@@ -63,6 +61,7 @@ class TestVC(unittest.TestCase):
         
 
     def test_black_recon(self,filename = "rec.png",k=3,n=4):
+        #REDO: black recon perfect just for all shares combined
         print("--test_black_recon start")
         vc = VC(k,n)
         path = f"D:\\Rok_Akademicki_22-23\\Praca_Inzynierska\\doku\\obrazy\\{filename}"
@@ -91,9 +90,9 @@ class TestUnitVC(unittest.TestCase):
         print("--init main")
         # turn off init!!!
         self.testFactors()
-        self.testAddColour()
-        self.testGetSizeMulti3()
-        self.testPermute(16,20)
+        # self.testAddColour()
+        # self.testGetSizeMulti3()
+        # self.testPermute(16,20)
         print("--end")
     
     def getRandPixel(self):
@@ -138,33 +137,102 @@ class TestUnitVC(unittest.TestCase):
             x = self.vc.getSizeMulti3()
             self.assertTrue(x>=0 and x<3)
             self.assertTrue((x+self.vc.m)%3==0)
+
+
+class TestAlgos(unittest.TestCase):
+    def __init__(self, *args, **kwargs):
+        super(TestAlgos, self).__init__(*args, **kwargs)
+        self.vc = None
+
+    def main(self, testnum=5):
+        img = "D:\Rok_Akademicki_22-23\Praca_Inzynierska\Official_Repo\\vCryptography\\algorithm\kimages\\test_img\\rec.png"
+        print("--init main")
+        for n in range(2,5):
+            for k in range(2,n):
+                vc = VC(k,n)
+                self.runAllImproved(vc,img)
+                print("PASSED {k},{n}")
+
+    def runAllImproved(self,vc,img):
+        self.testGetCMarticesImproved(vc)
+        u,v = self.testGetUVectors(vc)
+        self.testGetBasicSMatrix(vc,u)
+        self.testGetBasicSMatrix(vc,v)
+        self.testColourCMatrices(vc)
+        #---call
+        res = vc(img)
+        self.testEncrypt(vc)
+        self.testResult(vc,res,True)
+
+    def runAllMixed(self,vc):
+        pass
+
+    def runAllClassic(self,vc):
+        pass
+
+    def testGetUVectors(self,vc: VC):
+        u,v = vc.getUVectors()
+        self.assertEqual(vc.n+1, len(u), len(v))
+        return u,v
+
+    def testGetCMarticesImproved(self, vc: VC):
+        vc.C0,vc.C1 = [],[]
+        vc.m = 0
+        vc.r = 0
+        vc.getCMatricesImproved()
+        C0,C1 = vc.C0,vc.C1
+        expR = factorial(vc.m)
+        self.assertEqual(len(C0), len(C1))
+        self.assertEqual(len(C1),vc.r)
+        self.assertEqual(vc.r,expR)
+        self.assertEqual(len(C0[0]), len(C1[0]))
+        self.assertEqual(len(C1[0]),vc.n)
+        self.assertEqual(len(C0[0][0]), len(C1[0][0]))
+        self.assertEqual(len(C1[0][0]),vc.m)
+
+    def testGetBasicSMatrix(self,vc: VC, u):
+        S = vc.getBasicSMatrix(u)
+        newU = [0 for i in range(vc.n+1)]
+        self.assertEqual(vc.n+1,len(u))
+        for col in range(len(S[0])):
+            w = 0 #wielokrotnosc kolumny
+            for i in range(len(S)):
+                if(S[i][col]==vc.DARK):
+                    w += 1
+            newU[w]+=1
+        for i in range(vc.n+1):
+            self.assertEqual(newU[i],u[i])
+
+    def testColourCMatrices(self, vc: VC):
+        vc.colourCMatrices()
+        self.assertEqual(factorial(vc.m), vc.r, len(vc.C0), len(vc.C1))
+        self.assertEqual(len(vc.C0[0]),len(vc.C1[0]), vc.n)
+        self.assertEqual(vc.m,vc.m0*vc.m1,len(vc.C0[0][0]),len(vc.C1[0][0]))
+
+    def testBuildShares(self, vc: VC, i: int, j: int):
+        imgI, imgJ = i*vc.m1,j*vc.m0
+        for imgIdx in range(len(vc.resImages)):
+            for p in range(vc.m1):
+                for q in range(vc.m0):
+                    self.assertEqual(vc.resImages[imgIdx][imgI+p][imgJ+q], vc.share[imgIdx][vc.m1*p+q])
+
+    def testEncrypt(self, vc: VC, img):
+        resImages = vc(img)
+        self.assertEqual(len(resImages),vc.n)
     
-    def testGetUVectors(self):
-        pass
+    def testCombine(self, vc: VC, img1: CImage, img2: CImage):
+        img3 = vc.combine(img1, img2)
+        for i in range(len(img3)):
+            for j in range(len(img3[0])):
+                self.assertEqual(vc.addColour(img1[i][j],img2[i][j]),img3[i][j])
 
-    def testGetBasicSMatrix(self,u):
+    def testResult(self, vc: VC, img, pbr = False):
         pass
-
-    def testGetCMarticesImproved(self):
-        pass
-
-    def testColourCMatricesImproved(self):
-        pass
-
-    def testBuildShares(self, i: int, j: int):
-        pass
-
-    def testEncrypt(self):
-        pass
-    
-    def testCombine(self, img1: CImage, img2: CImage):
-        pass
-
-        
         
 
 if __name__ == '__main__':
     # test = TestVC()
     # test.main()
-    test = TestUnitVC()
+    # test = TestUnitVC()
+    test = TestAlgos()
     test.main()
