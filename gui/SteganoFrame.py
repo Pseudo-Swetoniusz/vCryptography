@@ -1,10 +1,15 @@
+import numpy as np
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QPixmap, QColor
 from PyQt5.QtWidgets import QFrame, QSizePolicy, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QWidget, QFileDialog, \
-    QGridLayout
+    QGridLayout, QSlider, QMainWindow
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 
 from algorithm.steganography.LSBSteganography import LSBSteganography
 from gui import MainMenuWindow
+from utils.BinaryImage import BinaryImage
+from utils.Image import CImage
+from matplotlib import pyplot as plt
 
 
 class SteganoFrame(QFrame):
@@ -65,6 +70,7 @@ class SteganoMenuBar(QFrame):
 class SteganoMainFrame(QFrame):
     def __init__(self, parent: SteganoFrame):
         super().__init__(parent)
+        self.rbi_widget = None
         self.rd_widget = None
         self.rt_widget = None
         self.ri_widget = None
@@ -78,11 +84,13 @@ class SteganoMainFrame(QFrame):
         self.rd_widget = ReadDecideWidget(self)
         self.rt_widget = ReadTextWidget(self)
         self.ri_widget = ReadImageWidget(self)
+        self.rbi_widget = ReadBinaryImageWidget(self)
         self.i3 = ImageInImageWidget(self)
         self.i2t = TextInImageWidget(self)
         layout.addWidget(self.rd_widget)
         layout.addWidget(self.rt_widget)
         layout.addWidget(self.ri_widget)
+        layout.addWidget(self.rbi_widget)
         layout.addWidget(self.i3)
         layout.addWidget(self.i2t)
         self.setLayout(layout)
@@ -98,6 +106,7 @@ class SteganoMainFrame(QFrame):
         self.ri_widget.set_results(path)
 
     def restart(self):
+        self.rbi_widget.hide()
         self.ri_widget.hide()
         self.rt_widget.hide()
         self.i3.hide()
@@ -113,6 +122,11 @@ class SteganoMainFrame(QFrame):
         print("text2")
         self.rd_widget.hide()
         self.i2t.set_results(path)
+
+    def read_binary_image(self, path):
+        print("im2")
+        self.rd_widget.hide()
+        self.rbi_widget.set_results(path)
 
 
 class ReadDecideWidget(QWidget):
@@ -164,6 +178,10 @@ class ReadDecideWidget(QWidget):
     def text_in_image(self, path):
         print("tex1")
         self.parent.text_in_image(path)
+
+    def read_binary_image(self, path):
+        print("read bimage 1")
+        self.parent.read_binary_image(path)
 
 
 class ReadOptionsWidget(QFrame):
@@ -221,8 +239,14 @@ class ReadOptionsWidget(QFrame):
         button4.setStyleSheet("QPushButton {color:#9d9d9d; letter-spacing:1px; background:#414141; "
                               "text-transform:uppercase;font-size:13px;  padding-top:2px; padding-bottom:2px;} "
                               "QPushButton::pressed {background:#515151;}")
+        button5 = QPushButton("read binary image")
+        button5.clicked.connect(self.read_binary_image)
+        button5.setStyleSheet("QPushButton {color:#9d9d9d; letter-spacing:1px; background:#414141; "
+                              "text-transform:uppercase;font-size:13px;  padding-top:2px; padding-bottom:2px;} "
+                              "QPushButton::pressed {background:#515151;}")
         l_2.addWidget(button3)
         l_2.addWidget(button4)
+        l_2.addWidget(button5)
         buttons_2.setLayout(l_2)
         layout.addWidget(title)
         layout.addWidget(instruction)
@@ -274,6 +298,13 @@ class ReadOptionsWidget(QFrame):
         print("read image")
         self.parent.read_image(self.path)
 
+    def read_binary_image(self):
+        if self.path is None:
+            print("error")
+            return
+        print("read binary image")
+        self.parent.read_binary_image(self.path)
+
 
 class ReadTextWidget(QWidget):
     def __init__(self, parent):
@@ -315,6 +346,54 @@ class ReadTextWidget(QWidget):
         self.text_label.setText(text)
         self.setVisible(True)
         print(text)
+
+    def hide(self):
+        self.setVisible(False)
+
+    def show(self):
+        self.setVisible(True)
+
+
+class ReadBinaryImageWidget(QWidget):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.base_image_label = None
+        self.result_image_label = None
+        self.initUI()
+
+    def initUI(self):
+        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+        layout = QHBoxLayout()
+        self.base_image_label = QLabel()
+        self.base_image_label.setMaximumWidth(800)
+        self.base_image_label.setMinimumWidth(800)
+        self.base_image_label.setAlignment(Qt.AlignCenter)
+        self.base_image_label.setStyleSheet("background:#323232;")
+        pix = QPixmap()
+        self.base_image_label.setPixmap(pix)
+        layout.addWidget(self.base_image_label)
+        self.result_image_label = QLabel()
+        self.result_image_label.setMaximumWidth(800)
+        self.result_image_label.setMinimumWidth(800)
+        self.result_image_label.setAlignment(Qt.AlignCenter)
+        self.result_image_label.setStyleSheet("background:#323232;")
+        pix = QPixmap()
+        self.result_image_label.setPixmap(pix)
+        layout.addWidget(self.result_image_label)
+        self.setLayout(layout)
+        self.setVisible(False)
+
+    def set_results(self, path):
+        print(path)
+        pixmap = QPixmap(path)
+        self.base_image_label.setPixmap(pixmap)
+        lsb = LSBSteganography()
+        lsb.load_image(path)
+        image = lsb.read_binary_image()
+        pixmap = image.get_pixmap()
+        self.result_image_label.setPixmap(pixmap)
+        self.setVisible(True)
+        print('done')
 
     def hide(self):
         self.setVisible(False)
@@ -374,6 +453,7 @@ class ReadImageWidget(QWidget):
 class ImageInImageWidget(QWidget):
     def __init__(self, parent):
         super().__init__(parent)
+        self.otsuWidget = None
         self.base_image_label = None
         self.result_image = None
         self.hidden_image = None
@@ -381,6 +461,8 @@ class ImageInImageWidget(QWidget):
         self.hidden_path = None
         self.path = None
         self.lsb = None
+        self.binary = False
+        self.binary_image = BinaryImage()
         self.initUI()
 
     def initUI(self):
@@ -424,6 +506,11 @@ class ImageInImageWidget(QWidget):
         si_button.setStyleSheet("QPushButton {color:#9d9d9d; letter-spacing:1px; background:#414141; "
                                 "text-transform:uppercase;font-size:13px; padding-top:2px; padding-bottom:2px;} "
                                 "QPushButton::pressed {background:#515151;}")
+        sbi_button = QPushButton("change to binary image")
+        sbi_button.clicked.connect(self.set_binary_image)
+        sbi_button.setStyleSheet("QPushButton {color:#9d9d9d; letter-spacing:1px; background:#414141; "
+                                 "text-transform:uppercase;font-size:13px; padding-top:2px; padding-bottom:2px;} "
+                                 "QPushButton::pressed {background:#515151;}")
         hi_button = QPushButton("hide image")
         hi_button.clicked.connect(self.hide_image)
         hi_button.setStyleSheet("QPushButton {color:#9d9d9d; letter-spacing:1px; background:#414141; "
@@ -432,9 +519,10 @@ class ImageInImageWidget(QWidget):
         svi_button = QPushButton("save image")
         svi_button.clicked.connect(self.save_image)
         svi_button.setStyleSheet("QPushButton {color:#9d9d9d; letter-spacing:1px; background:#414141; "
-                                "text-transform:uppercase;font-size:13px; padding-top:2px; padding-bottom:2px;} "
-                                "QPushButton::pressed {background:#515151;}")
+                                 "text-transform:uppercase;font-size:13px; padding-top:2px; padding-bottom:2px;} "
+                                 "QPushButton::pressed {background:#515151;}")
         ml.addWidget(si_button)
+        ml.addWidget(sbi_button)
         ml.addWidget(hi_button)
         ml.addWidget(svi_button)
         menu.setLayout(ml)
@@ -468,10 +556,21 @@ class ImageInImageWidget(QWidget):
         else:
             print('error')
 
+    def set_binary_image(self):
+        self.binary = True
+        cimg = CImage()
+        cimg.read_image(self.hidden_path)
+        self.binary_image.load_image(cimg)
+        self.otsuWidget = OtsuWidget(self)
+        self.otsuWidget.show()
+
     def hide_image(self):
         self.lsb = LSBSteganography()
         self.lsb.load_image(self.path)
-        self.lsb.hide_image(self.hidden_path)
+        if not self.binary:
+            self.lsb.hide_image(self.hidden_path)
+        else:
+            self.lsb.hide_binary_image(self.binary_image)
         pixmap = self.lsb.image.get_pixmap()
         self.result_image.setPixmap(pixmap)
 
@@ -622,3 +721,86 @@ class TextInImageWidget(QWidget):
 
     def show(self):
         self.setVisible(True)
+
+
+class OtsuWidget(QMainWindow):
+    def __init__(self, parent: ImageInImageWidget):
+        super(OtsuWidget, self).__init__(parent)
+        self.side_widget = None
+        self.parent = parent
+        self.image_label = None
+        self.histogram = None
+        self.binary_image = BinaryImage()
+        self.cimg = CImage()
+        self.cimg.read_image(parent.hidden_path)
+        self.binary_image.load_image(self.cimg)
+        self.histogram = self.binary_image.create_histogram()
+        self.threshold = self.binary_image.otsu()
+        self.binary_image.get_binary_image(self.threshold)
+        self.main_widget = QWidget()
+        self.initUI()
+    
+    def initUI(self):
+        self.setWindowTitle('vCryptography')
+        layout = QHBoxLayout()
+        self.setCentralWidget(self.main_widget)
+        self.setGeometry(1000, 400, 100, 100)
+        self.setStyleSheet("background:#3a3a3a; border: 2px solid #323232;")
+        self.image_label = QLabel()
+        self.image_label.setMaximumWidth(400)
+        self.image_label.setMinimumWidth(400)
+        self.image_label.setAlignment(Qt.AlignCenter)
+        self.image_label.setStyleSheet("background:#323232;")
+        self.image_label.setPixmap(self.binary_image.get_pixmap())
+        self.side_widget = QWidget()
+        layout2 = QVBoxLayout()
+        x = np.arange(0, 256)
+        self.figure = plt.figure()
+        self.plt = self.figure.add_subplot(111)
+        self.plt.bar(x, self.histogram, color='b')
+        self.canvas = FigureCanvasQTAgg(self.figure)
+        self.slider = QSlider(Qt.Horizontal)
+        self.slider.setGeometry(0, 0, 375, 30)
+        self.slider.valueChanged[int].connect(self.slider_changed_value)
+        self.slider.setMinimum(0)
+        self.slider.setMaximum(255)
+        self.label_button_widget = QWidget()
+        layout3 = QHBoxLayout()
+        self.label1 = QLabel("Threshold value:")
+        self.label1.setStyleSheet("color:#e4e4e4;")
+        self.label2 = QLabel(str(self.threshold))
+        self.label2.setStyleSheet("color:#e4e4e4;")
+        self.button = QPushButton("Apply thresholding")
+        self.button.clicked.connect(self.apply_tresholding)
+        self.button.setStyleSheet("background-color:#2c2c2c; "
+                                  "color:#e4e4e4;")
+        self.slider.setValue(self.threshold)
+        layout3.addWidget(self.label1)
+        layout3.addWidget(self.label2)
+        layout3.addWidget(self.button)
+        self.label_button_widget.setLayout(layout3)
+        layout2.addWidget(self.canvas)
+        layout2.addWidget(self.slider)
+        layout2.addWidget(self.label_button_widget)
+        self.side_widget.setLayout(layout2)
+        layout.addWidget(self.image_label)
+        layout.addWidget(self.side_widget)
+        self.main_widget.setLayout(layout)
+        self.resize(1000, 400)
+        self.show()
+
+    def slider_changed_value(self, value):
+        self.label2.setText(str(value))
+        self.threshold = value
+        cimg = CImage()
+        cimg.read_image(self.parent.hidden_path)
+        self.binary_image.load_image(cimg)
+        self.binary_image.get_binary_image(self.threshold)
+        self.image_label.setPixmap(self.binary_image.get_pixmap())
+
+    def apply_tresholding(self):
+        self.parent.binary_image.get_binary_image(self.threshold)
+        self.parent.hidden_image.setPixmap(self.parent.binary_image.get_pixmap())
+        self.close()
+
+        

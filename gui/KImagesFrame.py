@@ -190,9 +190,9 @@ class MenuWidget(QWidget):
         self.shareImage = QLabel(self)
         # self.shareImage.setMinimumHeight(self.width*0.8)
         x = 0.5
-        self.shareImage.setMinimumWidth(self.width*x)
-        self.shareImage.setMaximumHeight(self.width*x)
-        self.shareImage.setMaximumWidth(self.width*x)
+        self.shareImage.setMinimumWidth(int(self.width*x))
+        self.shareImage.setMaximumHeight(int(self.width*x))
+        self.shareImage.setMaximumWidth(int(self.width*x))
         self.shareImage.setAlignment(Qt.AlignCenter)
         self.combineWidget = CombineWidget(self)
         self.combineWidget.setMinimumHeight(3*height)

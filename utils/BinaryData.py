@@ -1,6 +1,7 @@
 import string
 import numpy as np
 from utils import Image
+from utils.BinaryImage import BinaryImage
 from utils.Image import CImage
 
 
@@ -37,6 +38,33 @@ class BinaryData:
         C.update_image()
         C.set_image()
         return C
+
+    def binary_image_to_binary(self, image: BinaryImage):
+        matrix = image.image_matrix // 255
+        result = format(image.width, '012b') + format(image.height, '012b')
+        with np.nditer(matrix, op_flags=['readwrite']) as it:
+            for val in it:
+                result += str(val)
+        return result
+
+    def binary_to_binary_image(self, binary: string):
+        wb = binary[:12]
+        width = int(wb, 2)
+        hb = binary[12:24]
+        height = int(hb, 2)
+        B = BinaryImage()
+        im_array = [[[] for _ in range(width)] for _ in range(height)]
+        index = 24
+        for h in range(height):
+            for w in range(width):
+                im_array[h][w] = int(binary[index])
+                index += 1
+        im_array = np.array(im_array)
+        im_array =  im_array * 255
+        B.update_matrix(im_array)
+        B.update_image()
+        B.set_image()
+        return B
 
     def text_to_binary(self, text: string):
         text_bin = ""

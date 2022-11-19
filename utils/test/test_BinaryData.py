@@ -1,6 +1,7 @@
 import os
 import pytest
 from utils.BinaryData import BinaryData
+from utils.BinaryImage import BinaryImage
 from utils.Image import CImage
 
 
@@ -34,6 +35,29 @@ def test_binary_to_image(binary_data, root):
     test_image.read_image(os.path.join(root, "resources/img.png"))
     assert image.compare_image(test_image) is True
 
+
+def test_binary_image_to_binary(binary_data, root):
+    cimg = CImage()
+    cimg.read_image(os.path.join(root, "resources/img.png"))
+    bimg = BinaryImage()
+    bimg.load_image(cimg)
+    bimg.create_histogram()
+    t = bimg.otsu()
+    bimg.get_binary_image(t)
+    new_binary = binary_data.binary_image_to_binary(bimg)
+    with open(os.path.join(root, "resources/test_binary_2"), 'r') as file:
+        test_binary = file.read().replace('\n', '')
+    assert new_binary == test_binary
+
+
+def test_binary_to_binary_image(binary_data, root):
+    with open(os.path.join(root, "resources/test_binary_2"), 'r') as file:
+        test_binary = file.read().replace('\n', '')
+    bimg = binary_data.binary_to_binary_image(test_binary)
+    bimg.show_image()
+    test_image = CImage()
+    test_image.read_image(os.path.join(root, "resources/img_2.png"))
+    assert test_image.compare_image(bimg)
 
 def test_text_to_binary(binary_data):
     test_text = "Zażółć gęślą jaźń"

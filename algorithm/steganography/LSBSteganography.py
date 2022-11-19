@@ -106,3 +106,33 @@ class LSBSteganography:
                 btext += val_b[7]
         im = self.BD.binary_to_image(btext)
         return im
+
+    def hide_binary_image(self, bimg):
+        message = self.BD.binary_image_to_binary(bimg)
+        if len(message) > self.max_length:
+            print("Image to big")
+            return
+        matrix = self.image.image_matrix
+        l = len(message)
+        index = 0
+        with np.nditer(matrix, op_flags=['readwrite']) as it:
+            for val in it:
+                if index == l:
+                    break
+                else:
+                    val_b = self.BD.number_to_binary(val)
+                    val_str = val_b[:7] + message[index]
+                    new_val = self.BD.binary_to_number(val_str)
+                    val[...] = new_val
+                    index += 1
+        self.image.update_image()
+
+    def read_binary_image(self):
+        matrix = self.image.image_matrix
+        btext = ""
+        with np.nditer(matrix, op_flags=['readwrite']) as it:
+            for i, val in enumerate(it):
+                val_b = self.BD.number_to_binary(val)
+                btext += val_b[7]
+        im = self.BD.binary_to_binary_image(btext)
+        return im
