@@ -14,7 +14,6 @@ from math import log, ceil
 from scipy.special import comb
 from sympy.utilities.iterables import multiset_permutations
 
-# value of l and two functions
 
 class VC():
     TYPE = uint8  
@@ -178,7 +177,6 @@ class VC():
         assert(self.m, len(self.C0[0][0]))
         self.m0, self.m1 = self.factors(self.m)
         self.r = len(self.C0)
-        # print(self.m, self.m0, self.m1, self.r)
     
     def kCMatrices(self):
         e = {i for i in range(self.k)}

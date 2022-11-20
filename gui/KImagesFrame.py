@@ -7,8 +7,6 @@ from gui import MainMenuWindow
 
 from utils.Image import CImage
 
-# fix bugs, damage control, make it look better?
-
 class KImagesFrame(QFrame):
     def __init__(self, parent: MainMenuWindow):
         super().__init__(parent)
@@ -155,12 +153,9 @@ class MenuWidget(QWidget):
         self.initUI()
 
     def initUI(self):
-        # self.setMinimumWidth(self.width)
         self.setStyleSheet("background:#3a3a3a; border: 3px solid #323232;color:#9d9d9d;font-size:20px;")
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
-        
         layout = QVBoxLayout()
-        # layout.setAlignment(Qt.AlignHCenter)
 
         height = 50
         self.variableInput = QTextEdit(self)
@@ -239,7 +234,6 @@ class MenuWidget(QWidget):
                 return
             img = CImage()
             img.read_image(path)
-            # print(n,img.get_pixmap())
             self.shares = self.vc(img)
             self.decryptedImg = self.vc.combineShares()
             self.parent.setResult(self.decryptedImg.get_pixmap())
@@ -253,7 +247,6 @@ class MenuWidget(QWidget):
     
     def prepareShares(self):
         if(self.shares is None):
-            # print("no shares")
             return
         self.shareIndex = 0
         self.shareSize = len(self.shares)
@@ -319,7 +312,6 @@ class CombineWidget(QWidget):
         try:
             variableString = self.idxInput.toPlainText()
             indices = list(map(int, variableString.split(' ')))
-            # print("combine: ", indices)
         except:
             print("failed to get input :(")
             return
@@ -328,46 +320,6 @@ class CombineWidget(QWidget):
             self.parent.parent.setResult(combinedImg.get_pixmap())
         except:
             print("problem combining")
-        
-
-# class StartWidget(QWidget):
-#     def __init__(self, parent: KImagesFrame):
-#         super().__init__(parent)
-#         self.parent = parent
-#         self.classicButton = None
-    #     self.mixedButton = None
-    #     self.improvedButton = None
-    #     self.initUI()
-
-    # def initUI(self):
-    #     self.setMinimumWidth(400)
-    #     self.setStyleSheet("background:#3a3a3a; border: 3px solid #323232;")
-    #     self.setMaximumHeight(100)
-    #     self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
-    #     layout = QVBoxLayout()
-    #     # layout.setAlignment(Qt.AlignTop)
-    #     layout.setAlignment(Qt.AlignHCenter)
-    #     self.createHorizontalLayout()
-    #     layout.addWidget(self.horizontalGroupBox)
-    #     self.setLayout(layout)
-
-    # def createHorizontalLayout(self):
-    #     self.horizontalGroupBox = QGroupBox()
-    #     layout = QHBoxLayout()
-    #     layout.setAlignment(Qt.AlignHCenter)
-    #     self.horizontalGroupBox.setMinimumHeight(60)
-    #     self.horizontalGroupBox.setMaximumHeight(60)
-    #     self.classicButton = QPushButton('Classic', self)
-    #     self.classicButton.clicked.connect(self.parent.setClassic)
-    #     layout.addWidget(self.classicButton)
-    #     self.mixedButton = QPushButton('Mixed', self)
-    #     self.mixedButton.clicked.connect(self.parent.setMixed)
-    #     layout.addWidget(self.mixedButton)
-    #     self.improvedButton = QPushButton('Improved', self)
-    #     self.improvedButton.clicked.connect(self.parent.setImproved)
-    #     layout.addWidget(self.improvedButton)
-
-    #     self.horizontalGroupBox.setLayout(layout)
 
 
 class ShareWidget(QWidget):
