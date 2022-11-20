@@ -155,7 +155,7 @@ class MenuWidget(QWidget):
         self.initUI()
 
     def initUI(self):
-        self.setMinimumWidth(self.width)
+        # self.setMinimumWidth(self.width)
         self.setStyleSheet("background:#3a3a3a; border: 3px solid #323232;color:#9d9d9d;font-size:20px;")
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
         
@@ -181,16 +181,16 @@ class MenuWidget(QWidget):
         self.imageButton.clicked.connect(self.loadImage)
         self.startButton = QPushButton(self)
         self.startButton.setMaximumHeight(height)
+        self.startButton.setMinimumHeight(height)
         self.startButton.setMinimumWidth(3*height)
         self.startButton.setText("Run")
         self.startButton.clicked.connect(self.run)
         self.shareWidget = ShareWidget(self)
         self.shareImage = QLabel(self)
-        # self.shareImage.setMinimumHeight(self.width*0.8)
-        x = 0.5
-        self.shareImage.setMinimumWidth(int(self.width*x))
-        self.shareImage.setMaximumHeight(int(self.width*x))
-        self.shareImage.setMaximumWidth(int(self.width*x))
+        self.shareImage.setMaximumHeight(400)
+        self.shareImage.setMinimumHeight(400)
+        self.shareImage.setMinimumWidth(400)
+        self.shareImage.setMaximumWidth(400)
         self.shareImage.setAlignment(Qt.AlignCenter)
         self.combineWidget = CombineWidget(self)
         self.combineWidget.setMinimumHeight(3*height)
@@ -239,20 +239,11 @@ class MenuWidget(QWidget):
                 return
             img = CImage()
             img.read_image(path)
-            print(n,img.get_pixmap())
+            # print(n,img.get_pixmap())
             self.shares = self.vc(img)
             self.decryptedImg = self.vc.combineShares()
             self.parent.setResult(self.decryptedImg.get_pixmap())
             self.prepareShares()
-
-    # def setClassic(self):
-    #     self.run(1)
-
-    # def setMixed(self):
-    #     self.run(2)
-
-    # def setImproved(self):
-    #     self.run(3)
     
     def setShare(self):
         pixmap = self.shares[self.shareIndex].get_pixmap()
@@ -262,7 +253,7 @@ class MenuWidget(QWidget):
     
     def prepareShares(self):
         if(self.shares is None):
-            print("no shares")
+            # print("no shares")
             return
         self.shareIndex = 0
         self.shareSize = len(self.shares)

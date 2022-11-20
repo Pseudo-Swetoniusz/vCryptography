@@ -145,13 +145,15 @@ class TestAlgos(unittest.TestCase):
         self.vc = None
 
     def main(self, testnum=5):
-        img = "D:\Rok_Akademicki_22-23\Praca_Inzynierska\Official_Repo\\vCryptography\\algorithm\kimages\\test_img\\rec.png"
+        path = "D:\Rok_Akademicki_22-23\Praca_Inzynierska\Official_Repo\\vCryptography\\algorithm\kimages\\test_img\\rec.png"
+        img = CImage()
+        img.read_image(path)
         print("--init main")
-        for n in range(2,5):
-            for k in range(2,n):
+        for n in range(2,6):
+            for k in range(2,n+1):
                 vc = VC(k,n)
                 self.runAllImproved(vc,img)
-                print("PASSED {k},{n}")
+                print(f"PASSED {k},{n}")
 
     def runAllImproved(self,vc,img):
         self.testGetCMarticesImproved(vc)
@@ -159,10 +161,10 @@ class TestAlgos(unittest.TestCase):
         self.testGetBasicSMatrix(vc,u)
         self.testGetBasicSMatrix(vc,v)
         self.testColourCMatrices(vc)
-        #---call
+        
         res = vc(img)
-        self.testEncrypt(vc)
-        self.testResult(vc,res,True)
+        self.testEncrypt(vc,res)
+        # self.testResult(vc,res,True)
 
     def runAllMixed(self,vc):
         pass
@@ -201,13 +203,17 @@ class TestAlgos(unittest.TestCase):
                     w += 1
             newU[w]+=1
         for i in range(vc.n+1):
-            self.assertEqual(newU[i],u[i])
+            self.assertEqual(newU[i],u[i]*vc.newton(vc.n,i))
 
     def testColourCMatrices(self, vc: VC):
         vc.colourCMatrices()
-        self.assertEqual(factorial(vc.m), vc.r, len(vc.C0), len(vc.C1))
-        self.assertEqual(len(vc.C0[0]),len(vc.C1[0]), vc.n)
-        self.assertEqual(vc.m,vc.m0*vc.m1,len(vc.C0[0][0]),len(vc.C1[0][0]))
+        self.assertEqual(vc.r, len(vc.C0))
+        self.assertEqual(len(vc.C0), len(vc.C1))
+        self.assertEqual(len(vc.C0[0]),len(vc.C1[0]))
+        self.assertEqual(len(vc.C1[0]), vc.n)
+        self.assertEqual(len(vc.C0[0][0]),len(vc.C1[0][0]))
+        self.assertEqual(vc.m,len(vc.C0[0][0]))
+        self.assertEqual(vc.m,vc.m0*vc.m1)
 
     def testBuildShares(self, vc: VC, i: int, j: int):
         imgI, imgJ = i*vc.m1,j*vc.m0
@@ -216,8 +222,7 @@ class TestAlgos(unittest.TestCase):
                 for q in range(vc.m0):
                     self.assertEqual(vc.resImages[imgIdx][imgI+p][imgJ+q], vc.share[imgIdx][vc.m1*p+q])
 
-    def testEncrypt(self, vc: VC, img):
-        resImages = vc(img)
+    def testEncrypt(self, vc: VC, resImages):
         self.assertEqual(len(resImages),vc.n)
     
     def testCombine(self, vc: VC, img1: CImage, img2: CImage):
@@ -227,6 +232,9 @@ class TestAlgos(unittest.TestCase):
                 self.assertEqual(vc.addColour(img1[i][j],img2[i][j]),img3[i][j])
 
     def testResult(self, vc: VC, img, pbr = False):
+        # orig czarny -> res czarny
+        # res kolor -> orig biały
+        # procentowo?
         pass
         
 

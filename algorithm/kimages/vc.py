@@ -237,7 +237,7 @@ class VC():
             t = self.incrementVector(t)
         self.C0 = expC0
         self.C1 = expC1
-        assert(self.r == len(self.C0))
+        assert(len(self.C0) == self.r**self.l)
         self.r = len(self.C0)
 
     def colourCMatrices(self):
@@ -319,7 +319,7 @@ class VC():
         return res
 
     def combineShares(self):
-        res = self.resImages[0]
+        res = deepcopy(self.resImages[0])
         for i in range(1,len(self.resImages)):
             res = self.combine(res, self.resImages[i])
         res.update_image()
@@ -329,7 +329,9 @@ class VC():
         if(len(indices)<1):
             print("Improper indices")
             return None
-        res = self.resImages[indices[0]]
+        if(len(indices)==1):
+            return self.resImages[indices[0]]
+        res = deepcopy(self.resImages[indices[0]])
         for i in range(1,len(indices)):
             if(indices[i]<len(self.resImages)):
                 res = self.combine(res, self.resImages[indices[i]])
