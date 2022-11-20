@@ -8,25 +8,12 @@ def test_permute(n,m,vc: VC):
     newS = vc.permute(S, permutation)
     print(f"S = {S}\np = {permutation}\n=> {newS}")
 
-# def test_simple():
-    # vc = VC(3,3)
-    # array = np.asarray([   [BLACK, OTHER, OTHER],
-    #             [BLACK, BLACK, BLACK],
-    #             [OTHER, BLACK, OTHER] ])
-    # img = CImage()
-    # img.update_matrix(array)
-    # img.width, img.height = 3,3
-    # img.update_image()
-
-    # shares = vc(img)
-    # decryptedImg = vc.combineShares()
-    # decryptedImg.show_image()
-
-def test_image(filename = "really-big-picture.jpg"):
-    vc = VC(4,4)
+def test_image(filename = "circles.png"):
+    vc = VC(3,3,1)
+    # vc = VC(3,4)
     print("--init")
     # path = f".\\algorithm\\k-images\\test_img\\{filename}"
-    path = f"D:\\Rok_Akademicki_21-22\\Praca_Inzynierska\\Official_Repo\\vCryptography\\algorithm\\kimages\\test_img\\{filename}"
+    path = f"D:\\Rok_Akademicki_22-23\\Praca_Inzynierska\\doku\\obrazy\\{filename}"
     img = CImage()
     img.read_image(path)
     # img.show_image()
@@ -41,13 +28,17 @@ def test_image(filename = "really-big-picture.jpg"):
     # peint result image
     decryptedImg.show_image()
     print("--end")
+
+def test_vectors(r=5,l=3):
+    t = [i+1 for i in range(r)]
+    vectors = [p for p in product(t, repeat=l)]
+    if(len(vectors) != r**l):
+        print("wrong vector construction!!!")
+    print(len(vectors))
+    # print(vectors)
     
 
 
 # test_simple()
-
-test_image("penta.png")
-
-# vc = VC(3,3)
-# test_permute(3,3,vc)
+test_image()
 

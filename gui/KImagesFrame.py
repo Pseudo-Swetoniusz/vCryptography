@@ -7,8 +7,6 @@ from gui import MainMenuWindow
 
 from utils.Image import CImage
 
-# fix bugs, damage control, make it look better?
-
 class KImagesFrame(QFrame):
     def __init__(self, parent: MainMenuWindow):
         super().__init__(parent)
@@ -155,12 +153,9 @@ class MenuWidget(QWidget):
         self.initUI()
 
     def initUI(self):
-        self.setMinimumWidth(self.width)
         self.setStyleSheet("background:#3a3a3a; border: 3px solid #323232;color:#9d9d9d;font-size:20px;")
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
-        
         layout = QVBoxLayout()
-        # layout.setAlignment(Qt.AlignHCenter)
 
         height = 50
         self.variableInput = QTextEdit(self)
@@ -180,19 +175,17 @@ class MenuWidget(QWidget):
         self.imageButton.setText("Load Original")
         self.imageButton.clicked.connect(self.loadImage)
         self.startButton = QPushButton(self)
-        self.startButton.setMinimumHeight(height)
         self.startButton.setMaximumHeight(height)
+        self.startButton.setMinimumHeight(height)
         self.startButton.setMinimumWidth(3*height)
-        self.startButton.setMaximumWidth(3*height)
         self.startButton.setText("Run")
         self.startButton.clicked.connect(self.run)
         self.shareWidget = ShareWidget(self)
         self.shareImage = QLabel(self)
-        # self.shareImage.setMinimumHeight(self.width*0.8)
-        x = 0.5
-        self.shareImage.setMinimumWidth(int(self.width*x))
-        self.shareImage.setMaximumHeight(int(self.width*x))
-        self.shareImage.setMaximumWidth(int(self.width*x))
+        self.shareImage.setMaximumHeight(400)
+        self.shareImage.setMinimumHeight(400)
+        self.shareImage.setMinimumWidth(400)
+        self.shareImage.setMaximumWidth(400)
         self.shareImage.setAlignment(Qt.AlignCenter)
         self.combineWidget = CombineWidget(self)
         self.combineWidget.setMinimumHeight(3*height)
@@ -223,22 +216,24 @@ class MenuWidget(QWidget):
     def run(self):
         try:
             variableString = self.variableInput.toPlainText()
-            intList = list(map(int, variableString.split(' ')))
+            argList = variableString.split(' ')
+            intList = list(map(int, argList[:2]))
+            arg = argList[2]
         except:
-            print("failed to get args :(")
+            print("Failed to get arguments.")
             return
-        if(len(intList)!=2):
-            print("Wrong number of args")
+        if(len(intList) != 2):
+            print("Incorrect arguments. Please use the following format: <k> <n> <algorithm: C | M | I>")
         else:
-            n,k = intList
-            self.vc = VC(n,n)
+            k,n = intList
+            mode = 1 if arg[0]=='C' else 2 if arg[0]=='M' else 3
+            self.vc = VC(k,n,mode)
             path = self.parent.getOriginalPath()
             if(path == None):
-                print("image not selected!")
+                print("Image not selected!")
                 return
             img = CImage()
             img.read_image(path)
-            print(n,img.get_pixmap())
             self.shares = self.vc(img)
             self.decryptedImg = self.vc.combineShares()
             self.parent.setResult(self.decryptedImg.get_pixmap())
@@ -252,7 +247,6 @@ class MenuWidget(QWidget):
     
     def prepareShares(self):
         if(self.shares is None):
-            print("no shares")
             return
         self.shareIndex = 0
         self.shareSize = len(self.shares)
@@ -260,14 +254,24 @@ class MenuWidget(QWidget):
         self.shareWidget.setLabel(self.shareIndex)
 
     def setPrev(self):
-        self.shareIndex = (self.shareIndex-1)%self.shareSize
-        self.setShare()
-        self.shareWidget.setLabel(self.shareIndex)
+        try:
+            self.shareIndex = (self.shareIndex-1)%self.shareSize
+            self.setShare()
+            self.shareWidget.setLabel(self.shareIndex)
+        except ZeroDivisionError:
+            print("No shares to show!")
+        except:
+            print("Next share error")
 
     def setNext(self):
-        self.shareIndex = (self.shareIndex+1)%self.shareSize
-        self.setShare()
-        self.shareWidget.setLabel(self.shareIndex)
+        try:
+            self.shareIndex = (self.shareIndex+1)%self.shareSize
+            self.setShare()
+            self.shareWidget.setLabel(self.shareIndex)
+        except ZeroDivisionError:
+            print("No shares to show!")
+        except:
+            print("Next share error")
 
 class CombineWidget(QWidget):
     def __init__(self,parent: KImagesFrame):
@@ -308,7 +312,6 @@ class CombineWidget(QWidget):
         try:
             variableString = self.idxInput.toPlainText()
             indices = list(map(int, variableString.split(' ')))
-            print("combine: ", indices)
         except:
             print("failed to get input :(")
             return
@@ -317,7 +320,7 @@ class CombineWidget(QWidget):
             self.parent.parent.setResult(combinedImg.get_pixmap())
         except:
             print("problem combining")
-        
+
 
 class ShareWidget(QWidget):
     def __init__(self, parent: KImagesFrame):
@@ -337,9 +340,7 @@ class ShareWidget(QWidget):
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignTop)
         self.createHorizontalLayout()
-        # self.shares = QGraphicsView(self)
         layout.addWidget(self.horizontalGroupBox)
-        # layout.addWidget(self.shares)
         self.setLayout(layout)
 
     def createHorizontalLayout(self):
