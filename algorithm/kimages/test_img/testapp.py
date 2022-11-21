@@ -145,15 +145,34 @@ class TestAlgos(unittest.TestCase):
         self.vc = None
 
     def main(self, testnum=5):
-        path = "D:\Rok_Akademicki_22-23\Praca_Inzynierska\Official_Repo\\vCryptography\\algorithm\kimages\\test_img\\rec.png"
-        img = CImage()
-        img.read_image(path)
+        filenames = ["rec","tcs-large"]
         print("--init main")
-        for n in range(2,6):
-            for k in range(2,n+1):
-                vc = VC(k,n)
-                self.runAllImproved(vc,img)
-                print(f"PASSED {k},{n}")
+        for f in filenames:
+            path = f"D:\Rok_Akademicki_22-23\Praca_Inzynierska\Official_Repo\\vCryptography\\algorithm\kimages\\test_img\\{f}.png"
+            img = CImage()
+            img.read_image(path)
+            
+            for n in range(2,6):
+                for k in range(2,n+1):
+                    vc = VC(k,n)
+                    self.runAllImproved(vc,img)
+                    print(f"PASSED I: {k},{n}: {f}")
+
+            for n in range(2,5):
+                vc = VC(2,n,mode=2)
+                self.runAll2k(vc,img)
+                print(f"PASSED M: 2,{n}: {f}")
+            
+            for k in range(3,5):
+                vc = VC(k,k,mode=2)
+                self.runAllkk(vc,img)
+                print(f"PASSED M: {k},{k}: {f}")
+            
+            for n in range(2,5):
+                for k in range(2,n+1):
+                    vc = VC(k,n)
+                    self.runAllClassic(vc,img)
+                    print(f"PASSED C: {k},{n}: {f}")
 
     def runAllImproved(self,vc,img):
         self.testGetCMarticesImproved(vc)
@@ -166,11 +185,24 @@ class TestAlgos(unittest.TestCase):
         self.testEncrypt(vc,res)
         # self.testResult(vc,res,True)
 
-    def runAllMixed(self,vc):
-        pass
+    def runAll2k(self,vc,img):
+        self.testk2CMatrices(vc)
+        self.testColourCMatrices(vc)
+        res = vc(img)
+        self.testEncrypt(vc,res)
 
-    def runAllClassic(self,vc):
-        pass
+    def runAllkk(self,vc,img):
+        self.testkCMatrices(vc)
+        self.testColourCMatrices(vc)
+        res = vc(img)
+        self.testEncrypt(vc,res)
+
+    def runAllClassic(self,vc,img):
+        self.testkCMatrices(vc)
+        self.testknCMatrices(vc)
+        self.testColourCMatrices(vc)
+        res = vc(img)
+        self.testEncrypt(vc,res)
 
     def testGetUVectors(self,vc: VC):
         u,v = vc.getUVectors()
@@ -205,6 +237,51 @@ class TestAlgos(unittest.TestCase):
         for i in range(vc.n+1):
             self.assertEqual(newU[i],u[i]*vc.newton(vc.n,i))
 
+    def testk2CMatrices(self, vc: VC):
+        vc.C0, vc.C1 = [],[]
+        vc.S0, vc.S1 = [],[]
+        vc.k2CMatrices()
+        self.assertEqual(vc.m0*vc.m1,vc.m)
+        self.assertEqual(vc.r, factorial(vc.m))
+        self.assertEqual(vc.m,len(vc.C0[0][0]))
+        self.assertEqual(vc.m,len(vc.C1[0][0]))
+        self.assertEqual(vc.m,vc.n)
+        self.assertEqual(vc.n,len(vc.C0[0]))
+        self.assertEqual(vc.n,len(vc.C1[0]))
+        self.assertEqual(vc.r,len(vc.C0))
+        self.assertEqual(vc.r,len(vc.C1))
+    
+    def testkCMatrices(self, vc: VC):
+        vc.m = 2**(vc.k-1)
+        vc.r = factorial(2**(vc.k-1))
+        vc.C0, vc.C1 = [],[]
+        vc.S0, vc.S1 = [],[]
+        vc.m0 = vc.m
+        vc.m1 = 1
+        vc.kCMatrices()
+        self.assertEqual(vc.m0*vc.m1,vc.m)
+        self.assertEqual(vc.r, factorial(vc.m))
+        self.assertEqual(vc.m,len(vc.C0[0][0]))
+        self.assertEqual(vc.m,len(vc.C1[0][0]))
+        self.assertEqual(vc.m,2**(vc.k-1))
+        self.assertEqual(vc.k,len(vc.C0[0]))
+        self.assertEqual(vc.k,len(vc.C1[0]))
+        self.assertEqual(vc.r,len(vc.C0))
+        self.assertEqual(vc.r,len(vc.C1))
+
+    def testknCMatrices(self, vc: VC):
+        vc.l = ceil(log(vc.n,vc.k))+2
+        vc.hashes = []
+        vc.knCMatrices()
+        self.assertEqual(vc.m0*vc.m1,vc.m)
+        self.assertEqual(vc.r, factorial(vc.m)**vc.l)
+        self.assertEqual(vc.m,len(vc.C0[0][0]))
+        self.assertEqual(vc.m,len(vc.C1[0][0]))
+        self.assertEqual(vc.n,len(vc.C0[0]))
+        self.assertEqual(vc.n,len(vc.C1[0]))
+        self.assertEqual(vc.r,len(vc.C0))
+        self.assertEqual(vc.r,len(vc.C1))
+    
     def testColourCMatrices(self, vc: VC):
         vc.colourCMatrices()
         self.assertEqual(vc.r, len(vc.C0))

@@ -179,6 +179,8 @@ class VC():
         self.r = len(self.C0)
     
     def kCMatrices(self):
+        self.m = 2**(self.k-1)
+        self.r = factorial(2**(self.k-1))
         e = {i for i in range(self.k)}
         comb = []
         for i in range(0,len(e)+1):
@@ -203,7 +205,7 @@ class VC():
         for permutation in perms:
             self.C0.append(self.permute(S0, permutation))
             self.C1.append(self.permute(S1, permutation))
-        self.r = factorial(self.m)
+        self.m1, self.m0 = self.factors(self.m)
         assert(self.r == len(self.C0))
         assert(self.r == len(self.C1))
 
