@@ -19,9 +19,7 @@ class KImagesFrame(QFrame):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignTop)
-        menu = MenuBar(self)
         self.main = MainFrame(self)
-        layout.addWidget(menu)
         layout.addWidget(self.main)
         self.setLayout(layout)
         self.setVisible(False)
@@ -34,31 +32,6 @@ class KImagesFrame(QFrame):
 
     def restart(self):
         self.main.restart()
-
-class MenuBar(QFrame):
-    def __init__(self, parent: KImagesFrame):
-        super().__init__(parent)
-        self.parent = parent
-        self.initUI()
-
-    def initUI(self):
-        self.setGeometry(0, 0, 0, 0)
-        self.setFixedHeight(40)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.setStyleSheet("background:#323232; border: 3px solid #323232;")
-        layout = QHBoxLayout(self)
-        layout.setAlignment(Qt.AlignRight)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
-        back = QPushButton()
-        back.setIcon(QIcon("gui/resources/back_arrow.png"))
-        back.setMaximumSize(60, 40)
-        back.clicked.connect(self.restart)
-        layout.addWidget(back)
-        self.setLayout(layout)
-
-    def restart(self):
-        self.parent.restart()
 
 class MainFrame(QFrame):
     def __init__(self, parent: KImagesFrame):
