@@ -1,6 +1,6 @@
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon, QPixmap
-from PyQt5.QtWidgets import QTextEdit, QFrame, QSizePolicy, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QWidget, QGraphicsView, QGroupBox, QFileDialog
+from PyQt5.QtGui import QIcon, QPixmap, QFont
+from PyQt5.QtWidgets import QTextEdit, QFrame, QSizePolicy, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QWidget, QComboBox, QGroupBox, QFileDialog, QGridLayout
 
 from algorithm.kimages.vc import VC
 from gui import MainMenuWindow
@@ -19,9 +19,7 @@ class KImagesFrame(QFrame):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignTop)
-        menu = MenuBar(self)
         self.main = MainFrame(self)
-        layout.addWidget(menu)
         layout.addWidget(self.main)
         self.setLayout(layout)
         self.setVisible(False)
@@ -34,31 +32,6 @@ class KImagesFrame(QFrame):
 
     def restart(self):
         self.main.restart()
-
-class MenuBar(QFrame):
-    def __init__(self, parent: KImagesFrame):
-        super().__init__(parent)
-        self.parent = parent
-        self.initUI()
-
-    def initUI(self):
-        self.setGeometry(0, 0, 0, 0)
-        self.setFixedHeight(40)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.setStyleSheet("background:#323232; border: 3px solid #323232;")
-        layout = QHBoxLayout(self)
-        layout.setAlignment(Qt.AlignRight)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
-        back = QPushButton()
-        back.setIcon(QIcon("gui/resources/back_arrow.png"))
-        back.setMaximumSize(60, 40)
-        back.clicked.connect(self.restart)
-        layout.addWidget(back)
-        self.setLayout(layout)
-
-    def restart(self):
-        self.parent.restart()
 
 class MainFrame(QFrame):
     def __init__(self, parent: KImagesFrame):
@@ -158,13 +131,11 @@ class MenuWidget(QWidget):
         layout = QVBoxLayout()
 
         height = 50
-        self.variableInput = QTextEdit(self)
-        self.variableInput.setStyleSheet("background-color:#3a3a3a;border:none;font-size:30px; letter-spacing:1px;")#pink
-        self.variableInput.setMinimumHeight(height)
-        self.variableInput.setMaximumHeight(height)
+        self.variableInput = VariableInput(self)
+        self.variableInput.setMinimumHeight(2.2*height)
         self.textInputLabel = QLabel("Input", self)
         self.textInputLabel.setAlignment(Qt.AlignCenter)
-        self.textInputLabel.setStyleSheet("background-color:#3a3a3a;border:none;font-size:30px; letter-spacing:1px;") #yellow
+        self.textInputLabel.setStyleSheet("background-color:#3a3a3a;border:none;font-size:15; letter-spacing:1px;") #yellow
         self.textInputLabel.setMinimumHeight(height)
         self.textInputLabel.setMaximumHeight(height)
         self.imageButton = QPushButton(self)
@@ -272,6 +243,72 @@ class MenuWidget(QWidget):
             print("No shares to show!")
         except:
             print("Next share error")
+
+
+class VariableInput(QWidget):
+    def __init__(self,parent: KImagesFrame):
+        super().__init__(parent)
+        self.parent = parent
+        self.gridGroupBox = None
+        self.kLayout = None
+        self.algoInput = None
+        self.kLabel = None
+        self.nLabel = None
+        self.algoLabel = None
+        self.initUI()
+
+    def initUI(self):
+        self.setMinimumWidth(600)
+        self.setStyleSheet("background:##008080; border: 1px solid #323232;")
+        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+        layout = QVBoxLayout()
+        layout.setAlignment(Qt.AlignTop)
+        self.createHorizontalLayout()
+        layout.addWidget(self.gridGroupBox)
+        self.setLayout(layout)
+
+    def createHorizontalLayout(self):
+        self.gridGroupBox = QGroupBox()
+        grid_layout = QGridLayout()
+
+        kLabel = QLabel("Input k", self)
+        kLabel.setStyleSheet("border: none")
+        nLabel = QLabel("Input n", self)
+        nLabel.setStyleSheet("border: none")
+        algoLabel = QLabel("Algo", self)
+        algoLabel.setStyleSheet("border: none")
+        kInput = QComboBox()
+        kInput.addItems(['2','3','4'])
+        kInput.activated.connect(self.activated)
+        kInput.currentTextChanged.connect(self.text_changed)
+        kInput.currentIndexChanged.connect(self.index_changed)
+        nInput = QComboBox()
+        nInput.addItems(['2','3','4'])
+        nInput.activated.connect(self.activated)
+        nInput.currentTextChanged.connect(self.text_changed)
+        nInput.currentIndexChanged.connect(self.index_changed)
+        algoInput = QComboBox()
+        algoInput.addItems(['Classic', 'Mixed', 'Improved'])
+        algoInput.activated.connect(self.activated)
+        algoInput.currentTextChanged.connect(self.text_changed)
+        algoInput.currentIndexChanged.connect(self.index_changed)
+
+        grid_layout.addWidget(kLabel,0,0)
+        grid_layout.addWidget(nLabel,0,1)
+        grid_layout.addWidget(algoLabel,0,2)
+        grid_layout.addWidget(kInput,1,0)
+        grid_layout.addWidget(nInput,1,1)
+        grid_layout.addWidget(algoInput,1,2)
+        self.gridGroupBox.setLayout(grid_layout)
+
+    def activated(Self, index):
+            print("Activated index:", index)
+
+    def text_changed(self, s):
+        print("Text changed:", s)
+
+    def index_changed(self, index):
+        print("Index changed", index)
 
 class CombineWidget(QWidget):
     def __init__(self,parent: KImagesFrame):
