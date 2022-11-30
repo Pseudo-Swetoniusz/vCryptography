@@ -1,11 +1,14 @@
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon, QPixmap
-from PyQt5.QtWidgets import QTextEdit, QFrame, QSizePolicy, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QWidget, QGraphicsView, QGroupBox, QFileDialog
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QTextEdit, QFrame, QSizePolicy, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QWidget, QComboBox, QGroupBox, QFileDialog, QGridLayout
 
 from algorithm.kimages.vc import VC
 from gui import MainMenuWindow
 
 from utils.Image import CImage
+
+def throwCustomError(message):
+    print(message)
 
 class KImagesFrame(QFrame):
     def __init__(self, parent: MainMenuWindow):
@@ -19,9 +22,7 @@ class KImagesFrame(QFrame):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignTop)
-        menu = MenuBar(self)
         self.main = MainFrame(self)
-        layout.addWidget(menu)
         layout.addWidget(self.main)
         self.setLayout(layout)
         self.setVisible(False)
@@ -35,31 +36,6 @@ class KImagesFrame(QFrame):
     def restart(self):
         self.main.restart()
 
-class MenuBar(QFrame):
-    def __init__(self, parent: KImagesFrame):
-        super().__init__(parent)
-        self.parent = parent
-        self.initUI()
-
-    def initUI(self):
-        self.setGeometry(0, 0, 0, 0)
-        self.setFixedHeight(40)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.setStyleSheet("background:#323232; border: 3px solid #323232;")
-        layout = QHBoxLayout(self)
-        layout.setAlignment(Qt.AlignRight)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
-        back = QPushButton()
-        back.setIcon(QIcon("gui/resources/back_arrow.png"))
-        back.setMaximumSize(60, 40)
-        back.clicked.connect(self.restart)
-        layout.addWidget(back)
-        self.setLayout(layout)
-
-    def restart(self):
-        self.parent.restart()
-
 class MainFrame(QFrame):
     def __init__(self, parent: KImagesFrame):
         super().__init__(parent)
@@ -70,7 +46,7 @@ class MainFrame(QFrame):
         self.initUI()
 
     def initUI(self):
-        self.setStyleSheet("background:#434343; border: 3px solid #323232;")
+        self.setStyleSheet("background:#434343; border: 3px solid #323232;font: 30pt;")
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         layout = QHBoxLayout(self)
         self.imagesWidget = ImagesWidget(self)
@@ -88,6 +64,15 @@ class MainFrame(QFrame):
     def setResult(self,image):
         self.imagesWidget.setResult(image)
 
+    def setText(self,text):
+        self.imagesWidget.setText(text)
+    
+    def getResultImage(self):
+        return self.imagesWidget.getResultImage()
+
+    def saveResultImage(self):
+        self.imagesWidget.saveResultImage()
+
     def getOriginalPath(self):
         return self.originalPath
 
@@ -96,6 +81,7 @@ class ImagesWidget(QWidget):
         super().__init__(parent)
         self.original = None
         self.result = None
+        self.resultImage = None
         self.initUI()
 
     def initUI(self):
@@ -122,14 +108,37 @@ class ImagesWidget(QWidget):
         self.setLayout(layout)
 
     def setOriginal(self,pixmap):
+        # pixmap = image.get_pixmap()
         w, h = self.original.geometry().width(), self.original.geometry().height()
         pixmap = pixmap.scaled(w, h, Qt.KeepAspectRatio)
         self.original.setPixmap(pixmap)
 
-    def setResult(self,pixmap):
+    def setResult(self,image): 
+        pixmap = image.get_pixmap()
         w, h = self.result.geometry().width(), self.result.geometry().height()
         pixmap = pixmap.scaled(w, h, Qt.KeepAspectRatio)
         self.result.setPixmap(pixmap)
+        self.resultImage = image
+    
+    def getResultImage(self):
+        return self.resultImage
+
+    def setText(self,text):
+        self.result.setText(text)
+        self.resultImage = None
+        self.result.repaint()
+    
+    def saveResultImage(self):
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        file_name = QFileDialog.getSaveFileName(self, 'Open File', '',
+                                                "image Files (*.png)")
+        if file_name[0] == '':
+            throwCustomError('error - path empty')
+        elif file_name:
+            self.resultImage.save_image(file_name[0])
+        else:
+            throwCustomError('error saving image')
 
 class MenuWidget(QWidget):
     def __init__(self, parent: KImagesFrame):
@@ -142,6 +151,12 @@ class MenuWidget(QWidget):
         self.shareWidget = None
         self.shareImage = None
         self.combineWidget = None
+
+        self.knValues = ['2','3','4']
+        self.algorithms = ['Classic', 'Mixed', 'Improved']
+        self.kIdx = 0
+        self.nIdx = 0
+        self.algoIdx = 0
 
         self.shares = None
         self.shareIndex = 0
@@ -158,13 +173,11 @@ class MenuWidget(QWidget):
         layout = QVBoxLayout()
 
         height = 50
-        self.variableInput = QTextEdit(self)
-        self.variableInput.setStyleSheet("background-color:#3a3a3a;border:none;font-size:30px; letter-spacing:1px;")#pink
-        self.variableInput.setMinimumHeight(height)
-        self.variableInput.setMaximumHeight(height)
+        self.variableInput = VariableInput(self)
+        self.variableInput.setMinimumHeight(2.2*height)
         self.textInputLabel = QLabel("Input", self)
         self.textInputLabel.setAlignment(Qt.AlignCenter)
-        self.textInputLabel.setStyleSheet("background-color:#3a3a3a;border:none;font-size:30px; letter-spacing:1px;") #yellow
+        self.textInputLabel.setStyleSheet("background-color:#3a3a3a;border:none;font-size:15; letter-spacing:1px;") #yellow
         self.textInputLabel.setMinimumHeight(height)
         self.textInputLabel.setMaximumHeight(height)
         self.imageButton = QPushButton(self)
@@ -206,38 +219,54 @@ class MenuWidget(QWidget):
         options |= QFileDialog.DontUseNativeDialog
         file_name = QFileDialog.getOpenFileName(self, 'Open File', '', "image Files (*.png)")
         if file_name[0] == '':
-            print('filename error')
+            throwCustomError('filename error')
         elif file_name:
             self.path = file_name[0]
             self.parent.setImage(file_name[0])
         else:
-            print('load image error')
+            throwCustomError('load image error')
 
     def run(self):
         try:
-            variableString = self.variableInput.toPlainText()
-            argList = variableString.split(' ')
-            intList = list(map(int, argList[:2]))
-            arg = argList[2]
+            self.clearResult("Awaiting result ... ")
+            self.clearShares("No shares", "Awaiting shares...")
         except:
-            print("Failed to get arguments.")
-            return
-        if(len(intList) != 2):
-            print("Incorrect arguments. Please use the following format: <k> <n> <algorithm: C | M | I>")
-        else:
-            k,n = intList
-            mode = 1 if arg[0]=='C' else 2 if arg[0]=='M' else 3
+            throwCustomError("Error clearing results")
+        try:
+            k = int(self.knValues[self.kIdx])
+            n = int(self.knValues[self.nIdx])
+            if(k>n):
+                throwCustomError("k must be smaller or equal to n")
+                return
+            mode = self.algoIdx+1
             self.vc = VC(k,n,mode)
             path = self.parent.getOriginalPath()
             if(path == None):
-                print("Image not selected!")
+                throwCustomError("Image not selected!")
+                self.clearResult("Image not selected!")
+                self.clearShares("", "")
                 return
             img = CImage()
             img.read_image(path)
             self.shares = self.vc(img)
             self.decryptedImg = self.vc.combineShares()
-            self.parent.setResult(self.decryptedImg.get_pixmap())
+            # self.parent.setResult(self.decryptedImg.get_pixmap())
+            self.parent.setResult(self.decryptedImg)
             self.prepareShares()
+        except:
+            throwCustomError("Algorithm error")
+            self.clearResult("Algorithm error")
+            self.clearShares("", "")
+    
+    def clearShares(self, idxText, shareText):
+        self.shareImage.setText(shareText)
+        self.shareImage.repaint()
+        self.shareWidget.shareLabel.setText(idxText)
+        self.shareWidget.shareLabel.repaint()
+        self.shares = None
+
+    def clearResult(self,text):
+        self.parent.setText(text)
     
     def setShare(self):
         pixmap = self.shares[self.shareIndex].get_pixmap()
@@ -259,9 +288,9 @@ class MenuWidget(QWidget):
             self.setShare()
             self.shareWidget.setLabel(self.shareIndex)
         except ZeroDivisionError:
-            print("No shares to show!")
+            throwCustomError("No shares to show!")
         except:
-            print("Next share error")
+            throwCustomError("Next share error")
 
     def setNext(self):
         try:
@@ -269,9 +298,69 @@ class MenuWidget(QWidget):
             self.setShare()
             self.shareWidget.setLabel(self.shareIndex)
         except ZeroDivisionError:
-            print("No shares to show!")
+            throwCustomError("No shares to show!")
         except:
-            print("Next share error")
+            throwCustomError("Next share error")
+
+
+class VariableInput(QWidget):
+    def __init__(self,parent: KImagesFrame):
+        super().__init__(parent)
+        self.parent = parent
+        self.gridGroupBox = None
+        self.kLayout = None
+        self.algoInput = None
+        self.kLabel = None
+        self.nLabel = None
+        self.algoLabel = None
+        self.initUI()
+
+    def initUI(self):
+        self.setMinimumWidth(600)
+        self.setStyleSheet("background:##008080; border: 1px solid #323232;")
+        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+        layout = QVBoxLayout()
+        layout.setAlignment(Qt.AlignTop)
+        self.createHorizontalLayout()
+        layout.addWidget(self.gridGroupBox)
+        self.setLayout(layout)
+
+    def createHorizontalLayout(self):
+        self.gridGroupBox = QGroupBox()
+        grid_layout = QGridLayout()
+
+        kLabel = QLabel("Input k", self)
+        kLabel.setStyleSheet("border: none")
+        nLabel = QLabel("Input n", self)
+        nLabel.setStyleSheet("border: none")
+        algoLabel = QLabel("Algo", self)
+        algoLabel.setStyleSheet("border: none")
+        kInput = QComboBox()
+        kInput.addItems(self.parent.knValues)
+        kInput.currentIndexChanged.connect(self.k_index_changed)
+        nInput = QComboBox()
+        nInput.addItems(self.parent.knValues)
+        nInput.currentIndexChanged.connect(self.n_index_changed)
+        algoInput = QComboBox()
+        algoInput.addItems(self.parent.algorithms)
+        algoInput.currentIndexChanged.connect(self.algo_index_changed)
+
+        grid_layout.addWidget(kLabel,0,0)
+        grid_layout.addWidget(nLabel,0,1)
+        grid_layout.addWidget(algoLabel,0,2)
+        grid_layout.addWidget(kInput,1,0)
+        grid_layout.addWidget(nInput,1,1)
+        grid_layout.addWidget(algoInput,1,2)
+        self.gridGroupBox.setLayout(grid_layout)
+
+    def k_index_changed(self, index):
+        self.parent.kIdx = index
+
+    def n_index_changed(self, index):
+        self.parent.nIdx = index
+
+    def algo_index_changed(self, index):
+        self.parent.algoIdx = index
 
 class CombineWidget(QWidget):
     def __init__(self,parent: KImagesFrame):
@@ -279,6 +368,8 @@ class CombineWidget(QWidget):
         self.parent = parent
         self.idxInput = None
         self.combineButton = None
+        self.saveButton = None
+        self.currentImage = None
         self.initUI()
 
     def initUI(self):
@@ -304,6 +395,9 @@ class CombineWidget(QWidget):
         self.combineButton = QPushButton('Combine', self)
         self.combineButton.clicked.connect(self.combine)
         layout.addWidget(self.combineButton)
+        self.saveButton = QPushButton('Save', self)
+        self.saveButton.clicked.connect(self.save)
+        layout.addWidget(self.saveButton)
 
         self.horizontalGroupBox.setLayout(layout)
 
@@ -313,13 +407,21 @@ class CombineWidget(QWidget):
             variableString = self.idxInput.toPlainText()
             indices = list(map(int, variableString.split(' ')))
         except:
-            print("failed to get input :(")
+            throwCustomError("failed to get input :(")
             return
         try:
             combinedImg = self.parent.vc.combineSharesByIdx(indices)
-            self.parent.parent.setResult(combinedImg.get_pixmap())
+            # self.parent.parent.setResult(combinedImg.get_pixmap())
+            self.parent.parent.setResult(combinedImg)
         except:
-            print("problem combining")
+            throwCustomError("problem combining")
+
+    def save(self):
+        try:
+            img = self.parent.parent.getResultImage()
+            self.parent.parent.saveResultImage()
+        except:
+            throwCustomError("Error saving image")
 
 
 class ShareWidget(QWidget):
