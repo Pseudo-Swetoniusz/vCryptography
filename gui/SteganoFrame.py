@@ -5,8 +5,9 @@ from PyQt5.QtWidgets import QFrame, QSizePolicy, QVBoxLayout, QLabel, QPushButto
     QGridLayout, QSlider, QMainWindow
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 
-from algorithm.steganography.LSBSteganography import LSBSteganography
+from algorithm.steganography.LSBSteganography import LSBSteganography, ImageTooBigException, TextTooLongException
 from gui import MainMenuWindow
+from gui.ErrorMessage import ErrorMessageWindow
 from utils.BinaryImage import BinaryImage
 from utils.Image import CImage
 from matplotlib import pyplot as plt
@@ -483,6 +484,8 @@ class ImageInImageWidget(QWidget):
         self.hidden_image = QLabel()
         self.hidden_image.setMaximumWidth(1200)
         self.hidden_image.setMinimumWidth(1200)
+        self.hidden_image.setMaximumHeight(250)
+        self.hidden_image.setMinimumHeight(250)
         self.hidden_image.setAlignment(Qt.AlignCenter)
         self.hidden_image.setStyleSheet("background:#323232;")
         pix = QPixmap()
@@ -549,12 +552,19 @@ class ImageInImageWidget(QWidget):
                                                 "image Files (*.png)")
         if file_name[0] == '':
             print('error')
+            file_error = ErrorMessageWindow(self, "Error loading image from file", "File loading error")
+            file_error.show()
         elif file_name:
             self.hidden_path = file_name[0]
             pixmap = QPixmap(self.hidden_path)
-            self.hidden_image.setPixmap(pixmap)
+            if pixmap.height() > 240:
+                self.hidden_image.setPixmap(pixmap.scaled(1200,240,Qt.KeepAspectRatio))
+            else:
+                self.hidden_image.setPixmap(pixmap)
         else:
             print('error')
+            file_error = ErrorMessageWindow(self, "Error loading image from file", "File loading error")
+            file_error.show()
 
     def set_binary_image(self):
         self.binary = True
@@ -565,14 +575,26 @@ class ImageInImageWidget(QWidget):
         self.otsuWidget.show()
 
     def hide_image(self):
+        self.result_image.setPixmap(QPixmap())
         self.lsb = LSBSteganography()
         self.lsb.load_image(self.path)
         if not self.binary:
-            self.lsb.hide_image(self.hidden_path)
+            try:
+                self.lsb.hide_image(self.hidden_path)
+                pixmap = self.lsb.image.get_pixmap()
+                self.result_image.setPixmap(pixmap)
+                error_window_1 = ErrorMessageWindow(self, "Image was successfully hidden", "Image hidden")
+                error_window_1.show()
+            except ImageTooBigException as ex:
+                print(ex)
+                error_window = ErrorMessageWindow(self, "Image is too big to hide", "Image too big")
+                error_window.show()
         else:
             self.lsb.hide_binary_image(self.binary_image)
-        pixmap = self.lsb.image.get_pixmap()
-        self.result_image.setPixmap(pixmap)
+            pixmap = self.lsb.image.get_pixmap()
+            self.result_image.setPixmap(pixmap)
+            error_window_1 = ErrorMessageWindow(self, "Image was successfully hidden", "Image hidden")
+            error_window_1.show()
 
     def save_image(self):
         options = QFileDialog.Options()
@@ -626,7 +648,8 @@ class TextInImageWidget(QWidget):
         self.hidden_text.setMaximumWidth(1200)
         self.hidden_text.setMinimumWidth(1200)
         self.hidden_text.setAlignment(Qt.AlignCenter)
-        self.hidden_text.setStyleSheet("background:#323232;color:#9d9d9d; font-size:15px;")
+        self.hidden_text.setStyleSheet("background:#323232;color:#9d9d9d; font-size:15px; overflow:auto;")
+        self.hidden_text.setMaximumHeight(250)
         pix = QPixmap()
         self.hidden_text.setPixmap(pix)
         l_2.addWidget(self.hidden_text)
@@ -685,7 +708,9 @@ class TextInImageWidget(QWidget):
         file_name = QFileDialog.getOpenFileName(self, 'Open File', '',
                                                 "Text Files (*.txt)")
         if file_name[0] == '':
-            print('error - 3')
+            print("error")
+            file_error = ErrorMessageWindow(self, "Error loading image from file", "File loading error")
+            file_error.show()
         elif file_name:
             print(file_name[0])
             self.hidden_path = file_name[0]
@@ -694,15 +719,24 @@ class TextInImageWidget(QWidget):
                 print(self.h_text[0])
                 self.hidden_text.setText(self.h_text[0])
         else:
-            print('error - 6')
+            print("error")
+            file_error = ErrorMessageWindow(self, "Error loading image from file", "File loading error")
+            file_error.show()
 
     def hide_text(self):
         self.lsb = LSBSteganography()
         self.lsb.load_image(self.path)
         self.lsb.load_text(self.h_text[0])
-        self.lsb.hide_text()
-        pixmap = self.lsb.image.get_pixmap()
-        self.result_image.setPixmap(pixmap)
+        try:
+            self.lsb.hide_text()
+            pixmap = self.lsb.image.get_pixmap()
+            self.result_image.setPixmap(pixmap)
+            error_window_1 = ErrorMessageWindow(self, "Text was successfully hidden", "Text hidden")
+            error_window_1.show()
+        except TextTooLongException as ex:
+            print(ex)
+            text_error = ErrorMessageWindow(self, "Text is too long to hide.", "Text too long")
+            text_error.show()
 
     def save_image(self):
         options = QFileDialog.Options()
@@ -739,7 +773,7 @@ class OtsuWidget(QMainWindow):
         self.binary_image.get_binary_image(self.threshold)
         self.main_widget = QWidget()
         self.initUI()
-    
+
     def initUI(self):
         self.setWindowTitle('vCryptography')
         layout = QHBoxLayout()
@@ -751,7 +785,11 @@ class OtsuWidget(QMainWindow):
         self.image_label.setMinimumWidth(400)
         self.image_label.setAlignment(Qt.AlignCenter)
         self.image_label.setStyleSheet("background:#323232;")
-        self.image_label.setPixmap(self.binary_image.get_pixmap())
+        pixmap = self.binary_image.get_pixmap()
+        if pixmap.height() > 400 or pixmap.width() > 400:
+            self.image_label.setPixmap(pixmap.scaled(400,400,Qt.KeepAspectRatio))
+        else:
+            self.image_label.setPixmap(pixmap)
         self.side_widget = QWidget()
         layout2 = QVBoxLayout()
         x = np.arange(0, 256)
@@ -796,11 +834,14 @@ class OtsuWidget(QMainWindow):
         cimg.read_image(self.parent.hidden_path)
         self.binary_image.load_image(cimg)
         self.binary_image.get_binary_image(self.threshold)
-        self.image_label.setPixmap(self.binary_image.get_pixmap())
+        pixmap = self.binary_image.get_pixmap()
+        if pixmap.height() > 400 or pixmap.width() > 400:
+            self.image_label.setPixmap(pixmap.scaled(400, 400, Qt.KeepAspectRatio))
+        else:
+            self.image_label.setPixmap(pixmap)
 
     def apply_tresholding(self):
         self.parent.binary_image.get_binary_image(self.threshold)
-        self.parent.hidden_image.setPixmap(self.parent.binary_image.get_pixmap())
+        pixmap = self.parent.binary_image.get_pixmap()
+        self.parent.hidden_image.setPixmap(pixmap)
         self.close()
-
-        

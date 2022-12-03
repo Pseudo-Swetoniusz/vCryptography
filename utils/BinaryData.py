@@ -21,7 +21,7 @@ class BinaryData:
         hb = binary[12:24]
         height = int(hb, 2)
         C = CImage()
-        im_array = [[[] for _ in range(width)] for _ in range(height)]
+        im_array = [[[0, 0, 0] for _ in range(width)] for _ in range(height)]
         index = 24
         for h in range(height):
             for w in range(width):
@@ -29,10 +29,14 @@ class BinaryData:
                 g = int(binary[index + 8:index + 16], 2)
                 b = int(binary[index + 16:index + 24], 2)
                 a = im_array[h][w]
-                a.append(r)
-                a.append(g)
-                a.append(b)
+                a[0] = r
+                a[1] = g
+                a[2] = b
                 index = index + 24
+                if index >= len(binary):
+                    break
+            if index >= len(binary):
+                break
         im_array = np.array(im_array)
         C.update_matrix(im_array.astype(np.uint8))
         C.update_image()
@@ -53,14 +57,18 @@ class BinaryData:
         hb = binary[12:24]
         height = int(hb, 2)
         B = BinaryImage()
-        im_array = [[[] for _ in range(width)] for _ in range(height)]
+        im_array = [[0 for _ in range(width)] for _ in range(height)]
         index = 24
         for h in range(height):
             for w in range(width):
                 im_array[h][w] = int(binary[index])
                 index += 1
+                if index >= len(binary):
+                    break
+            if index >= len(binary):
+                break
         im_array = np.array(im_array)
-        im_array =  im_array * 255
+        im_array = im_array * 255
         B.update_matrix(im_array)
         B.update_image()
         B.set_image()

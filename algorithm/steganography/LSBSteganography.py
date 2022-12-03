@@ -4,6 +4,21 @@ from utils.BinaryData import BinaryData
 from utils.Image import CImage
 
 
+class ImageTooBigException(Exception):
+    def __init__(self, *args):
+        super().__init__(args)
+
+    def __str__(self):
+        return "Image is too big to hide."
+
+class TextTooLongException(Exception):
+    def __init__(self, *args):
+        super().__init__(args)
+
+    def __str__(self):
+        return "Text is too long to hide."
+
+
 class LSBSteganography:
     def __init__(self):
         self.BD = BinaryData()
@@ -42,6 +57,8 @@ class LSBSteganography:
             self.binary_text = self.BD.text_to_binary(self.text)
         matrix = self.image.image_matrix
         l = len(self.binary_text)
+        if l > self.max_length:
+            raise TextTooLongException()
         index = 0
         with np.nditer(matrix, op_flags=['readwrite']) as it:
             for i, val in enumerate(it):
@@ -60,8 +77,7 @@ class LSBSteganography:
         hidden.read_image(image_path)
         message = self.BD.image_to_binary(hidden)
         if len(message) > self.max_length:
-            print("Image to big")
-            return
+            raise ImageTooBigException()
         matrix = self.image.image_matrix
         l = len(message)
         index = 0
