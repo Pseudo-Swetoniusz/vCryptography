@@ -97,12 +97,10 @@ class SteganoMainFrame(QFrame):
         self.setLayout(layout)
 
     def read_text(self, path):
-        print("read text 2")
         self.rd_widget.hide()
         self.rt_widget.set_results(path)
 
     def read_image(self, path):
-        print("read image 2")
         self.rd_widget.hide()
         self.ri_widget.set_results(path)
 
@@ -115,17 +113,14 @@ class SteganoMainFrame(QFrame):
         self.rd_widget.show()
 
     def image_in_image(self, path):
-        print('im1')
         self.rd_widget.hide()
         self.i3.set_results(path)
 
     def text_in_image(self, path):
-        print("text2")
         self.rd_widget.hide()
         self.i2t.set_results(path)
 
     def read_binary_image(self, path):
-        print("im2")
         self.rd_widget.hide()
         self.rbi_widget.set_results(path)
 
@@ -157,31 +152,24 @@ class ReadDecideWidget(QWidget):
         self.image_label.setPixmap(pixmap)
 
     def hide(self):
-        print("read - 3")
         self.setVisible(False)
-        print("read -4")
 
     def show(self):
         self.setVisible(True)
 
     def read_text(self, path):
-        print("read text 1")
         self.parent.read_text(path)
 
     def read_image(self, path):
-        print('read image 1')
         self.parent.read_image(path)
 
     def image_in_image(self, path):
-        print('im')
         self.parent.image_in_image(path)
 
     def text_in_image(self, path):
-        print("tex1")
         self.parent.text_in_image(path)
 
     def read_binary_image(self, path):
-        print("read bimage 1")
         self.parent.read_binary_image(path)
 
 
@@ -273,37 +261,27 @@ class ReadOptionsWidget(QFrame):
 
     def text_in_image(self):
         if self.path is None:
-            print("error")
             return
-        print("text in image")
         self.parent.text_in_image(self.path)
 
     def image_in_image(self):
         if self.path is None:
-            print("error 4")
             return
-        print("image in image")
         self.parent.image_in_image(self.path)
 
     def read_text(self):
         if self.path is None:
-            print("error")
             return
-        print("read text")
         self.parent.read_text(self.path)
 
     def read_image(self):
         if self.path is None:
-            print("error")
             return
-        print("read image")
         self.parent.read_image(self.path)
 
     def read_binary_image(self):
         if self.path is None:
-            print("error")
             return
-        print("read binary image")
         self.parent.read_binary_image(self.path)
 
 
@@ -338,7 +316,6 @@ class ReadTextWidget(QWidget):
         self.setVisible(False)
 
     def set_results(self, path):
-        print(path)
         pixmap = QPixmap(path)
         self.base_image_label.setPixmap(pixmap)
         lsb = LSBSteganography()
@@ -346,7 +323,6 @@ class ReadTextWidget(QWidget):
         text = lsb.read_text()
         self.text_label.setText(text)
         self.setVisible(True)
-        print(text)
 
     def hide(self):
         self.setVisible(False)
@@ -385,7 +361,6 @@ class ReadBinaryImageWidget(QWidget):
         self.setVisible(False)
 
     def set_results(self, path):
-        print(path)
         pixmap = QPixmap(path)
         self.base_image_label.setPixmap(pixmap)
         lsb = LSBSteganography()
@@ -394,7 +369,6 @@ class ReadBinaryImageWidget(QWidget):
         pixmap = image.get_pixmap()
         self.result_image_label.setPixmap(pixmap)
         self.setVisible(True)
-        print('done')
 
     def hide(self):
         self.setVisible(False)
@@ -433,7 +407,6 @@ class ReadImageWidget(QWidget):
         self.setVisible(False)
 
     def set_results(self, path):
-        print(path)
         pixmap = QPixmap(path)
         self.base_image_label.setPixmap(pixmap)
         lsb = LSBSteganography()
@@ -442,7 +415,6 @@ class ReadImageWidget(QWidget):
         pixmap = image.get_pixmap()
         self.result_image_label.setPixmap(pixmap)
         self.setVisible(True)
-        print('done')
 
     def hide(self):
         self.setVisible(False)
@@ -495,7 +467,7 @@ class ImageInImageWidget(QWidget):
         self.result_image.setMaximumWidth(800)
         self.result_image.setMinimumWidth(800)
         self.result_image.setAlignment(Qt.AlignCenter)
-        self.result_image.setStyleSheet("background:#323232;")
+        self.result_image.setStyleSheet("background:#323232;color:#9d9d9d;")
         pix = QPixmap()
         self.result_image.setPixmap(pix)
         l_1.addWidget(self.result_image)
@@ -540,7 +512,6 @@ class ImageInImageWidget(QWidget):
 
     def set_results(self, path):
         self.path = path
-        print(path)
         pixmap = QPixmap(path)
         self.base_image_label.setPixmap(pixmap)
         self.setVisible(True)
@@ -551,7 +522,6 @@ class ImageInImageWidget(QWidget):
         file_name = QFileDialog.getOpenFileName(self, 'Open File', '',
                                                 "image Files (*.png)")
         if file_name[0] == '':
-            print('error')
             file_error = ErrorMessageWindow(self, "Error loading image from file", "File loading error")
             file_error.show()
         elif file_name:
@@ -562,7 +532,6 @@ class ImageInImageWidget(QWidget):
             else:
                 self.hidden_image.setPixmap(pixmap)
         else:
-            print('error')
             file_error = ErrorMessageWindow(self, "Error loading image from file", "File loading error")
             file_error.show()
 
@@ -575,7 +544,8 @@ class ImageInImageWidget(QWidget):
         self.otsuWidget.show()
 
     def hide_image(self):
-        self.result_image.setPixmap(QPixmap())
+        self.result_image.setText("Waiting for result...")
+        self.result_image.repaint()
         self.lsb = LSBSteganography()
         self.lsb.load_image(self.path)
         if not self.binary:
@@ -657,7 +627,7 @@ class TextInImageWidget(QWidget):
         self.result_image.setMaximumWidth(800)
         self.result_image.setMinimumWidth(800)
         self.result_image.setAlignment(Qt.AlignCenter)
-        self.result_image.setStyleSheet("background:#323232;")
+        self.result_image.setStyleSheet("background:#323232;color:#9d9d9d;")
         pix = QPixmap()
         self.result_image.setPixmap(pix)
         l_1.addWidget(self.result_image)
@@ -696,34 +666,33 @@ class TextInImageWidget(QWidget):
 
     def set_results(self, path):
         self.path = path
-        print(path)
         pixmap = QPixmap(path)
         self.base_image_label.setPixmap(pixmap)
         self.setVisible(True)
 
     def set_hidden_text(self):
-        print('set_text')
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
         file_name = QFileDialog.getOpenFileName(self, 'Open File', '',
                                                 "Text Files (*.txt)")
         if file_name[0] == '':
-            print("error")
             file_error = ErrorMessageWindow(self, "Error loading image from file", "File loading error")
             file_error.show()
         elif file_name:
-            print(file_name[0])
             self.hidden_path = file_name[0]
-            with open(self.hidden_path) as f:
+            with open(self.hidden_path, encoding="utf-8") as f:
                 self.h_text = f.readlines()
-                print(self.h_text[0])
-                self.hidden_text.setText(self.h_text[0])
+                result_text = ""
+                for l in self.h_text:
+                    result_text += l
+                self.hidden_text.setText(result_text)
         else:
-            print("error")
             file_error = ErrorMessageWindow(self, "Error loading image from file", "File loading error")
             file_error.show()
 
     def hide_text(self):
+        self.result_image.setText("Waiting for result...")
+        self.result_image.repaint()
         self.lsb = LSBSteganography()
         self.lsb.load_image(self.path)
         self.lsb.load_text(self.h_text[0])

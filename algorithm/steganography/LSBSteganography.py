@@ -1,4 +1,5 @@
 import numpy as np
+import time
 
 from utils.BinaryData import BinaryData
 from utils.Image import CImage
@@ -10,6 +11,7 @@ class ImageTooBigException(Exception):
 
     def __str__(self):
         return "Image is too big to hide."
+
 
 class TextTooLongException(Exception):
     def __init__(self, *args):
@@ -46,14 +48,14 @@ class LSBSteganography:
             new_text = n * self.binary_text
             l = self.max_length - len(new_text) - 1
             new_text += self.binary_text[:l - 3]
-            new_text += "###"
+            new_text += "#####"
             self.binary_text = new_text
 
     def hide_text(self, o="simple"):
         if o == "full":
             self.full_text()
         else:
-            self.text += "###"
+            self.text += "#####"
             self.binary_text = self.BD.text_to_binary(self.text)
         matrix = self.image.image_matrix
         l = len(self.binary_text)
@@ -100,7 +102,7 @@ class LSBSteganography:
         index = 0
         with np.nditer(matrix, op_flags=['readwrite']) as it:
             for i, val in enumerate(it):
-                if end_sign == 3:
+                if end_sign == 5:
                     break
                 else:
                     val_b = self.BD.number_to_binary(val)
@@ -110,7 +112,7 @@ class LSBSteganography:
                             end_sign += 1
                     index += 1
         rtext = self.BD.binary_to_text(btext)
-        rtext = rtext[:len(rtext) - 3]
+        rtext = rtext[:len(rtext) - 5]
         return rtext
 
     def read_image(self):
@@ -124,10 +126,10 @@ class LSBSteganography:
         return im
 
     def hide_binary_image(self, bimg):
+        st = time.time()
         message = self.BD.binary_image_to_binary(bimg)
         if len(message) > self.max_length:
-            print("Image to big")
-            return
+            raise ImageTooBigException()
         matrix = self.image.image_matrix
         l = len(message)
         index = 0
@@ -142,6 +144,9 @@ class LSBSteganography:
                     val[...] = new_val
                     index += 1
         self.image.update_image()
+        et = time.time()
+        elapsed_time = et - st
+        print('Execution time:', elapsed_time, 'seconds')
 
     def read_binary_image(self):
         matrix = self.image.image_matrix

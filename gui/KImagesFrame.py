@@ -174,7 +174,7 @@ class MenuWidget(QWidget):
 
         height = 50
         self.variableInput = VariableInput(self)
-        self.variableInput.setMinimumHeight(2.2*height)
+        self.variableInput.setMinimumHeight(int(2.2*height))
         self.textInputLabel = QLabel("Input", self)
         self.textInputLabel.setAlignment(Qt.AlignCenter)
         self.textInputLabel.setStyleSheet("background-color:#3a3a3a;border:none;font-size:15; letter-spacing:1px;") #yellow
