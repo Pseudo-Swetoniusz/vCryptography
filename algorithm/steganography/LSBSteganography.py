@@ -126,7 +126,6 @@ class LSBSteganography:
         return im
 
     def hide_binary_image(self, bimg):
-        st = time.time()
         message = self.BD.binary_image_to_binary(bimg)
         if len(message) > self.max_length:
             raise ImageTooBigException()
@@ -144,9 +143,6 @@ class LSBSteganography:
                     val[...] = new_val
                     index += 1
         self.image.update_image()
-        et = time.time()
-        elapsed_time = et - st
-        print('Execution time:', elapsed_time, 'seconds')
 
     def read_binary_image(self):
         matrix = self.image.image_matrix
