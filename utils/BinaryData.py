@@ -76,17 +76,29 @@ class BinaryData:
 
     def text_to_binary(self, text: string):
         text_bin = ""
-        for l in text:
-            t = format(ord(l), '09b')
-            text_bin += t
+        text_bytes = text.encode(encoding='utf-8')
+        #for l in text:
+        #    t = format(ord(l), '09b')
+        #    text_bin += t
+        for t in text_bytes:
+            text_bin += format(t, '08b')
         return text_bin
 
     def binary_to_text(self, binary: string):
         text = ""
-        for i in range(0, len(binary), 9):
-            bl = binary[i:i + 9]
-            l = chr(int(bl, 2))
-            text += l
+        b_array = bytearray()
+        #for i in range(0, len(binary), 9):
+        #    bl = binary[i:i + 9]
+        #    l = chr(int(bl, 2))
+        #    text += l
+        for i in range(0,len(binary), 8):
+            byte = binary[i:i+8]
+            b = int(byte,2).to_bytes(1,'big')
+            b_array.append(b[0])
+        try:
+            text = b_array.decode(encoding='utf-8')
+        except UnicodeDecodeError:
+            return ''
         return text
 
     def number_to_binary(self, number: int):

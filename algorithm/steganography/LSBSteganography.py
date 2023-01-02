@@ -107,8 +107,8 @@ class LSBSteganography:
                 else:
                     val_b = self.BD.number_to_binary(val)
                     btext += val_b[7]
-                    if index % 9 == 8:
-                        if self.BD.binary_to_text(btext[-9:]) == "#":
+                    if index % 8 == 7:
+                        if self.BD.binary_to_text(btext[-8:]) == "#":
                             end_sign += 1
                     index += 1
         rtext = self.BD.binary_to_text(btext)
