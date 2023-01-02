@@ -1,8 +1,6 @@
 
-from sys import path
 from typing import List
 from numpy import uint8,uint16
-path.append(".")
 from utils.BinaryData import *
 from utils.Image import *
 from math import factorial
@@ -170,11 +168,10 @@ class VC():
         u0,u1 = self.getUVectors()
         S0,S1 = self.getBasicSMatrix(u0),self.getBasicSMatrix(u1)
         self.m = len(S0[0])
-        perms = permutations([i for i in range(self.m)]) #permuting columns
+        perms = permutations([i for i in range(self.m)])
         for permutation in perms:
             self.C0.append(self.permute(S0, permutation))
             self.C1.append(self.permute(S1, permutation))
-        assert(self.m, len(self.C0[0][0]))
         self.m0, self.m1 = self.factors(self.m)
         self.r = len(self.C0)
     
@@ -206,8 +203,6 @@ class VC():
             self.C0.append(self.permute(S0, permutation))
             self.C1.append(self.permute(S1, permutation))
         self.m1, self.m0 = self.factors(self.m)
-        assert(self.r == len(self.C0))
-        assert(self.r == len(self.C1))
 
     def k2CMatrices(self):
         self.m = self.n
@@ -221,7 +216,6 @@ class VC():
             self.C0.append(self.permute(S0, permutation))
             self.C1.append(self.permute(S1, permutation))
         self.r = len(self.C0)
-        assert(self.r == factorial(self.m))
 
     def knCMatrices(self):
         self.constructHashes()
@@ -237,7 +231,6 @@ class VC():
             t = self.incrementVector(t)
         self.C0 = expC0
         self.C1 = expC1
-        assert(len(self.C0) == self.r**self.l)
         self.r = len(self.C0)
 
     def colourCMatrices(self):
@@ -311,7 +304,6 @@ class VC():
         return self.resImages
 
     def combine(self, img1: CImage, img2: CImage):
-        assert img1.height == img2.height and img1.width == img2.width
         res = deepcopy(img1)
         for i in range(img1.height):
             for j in range(img1.width):
@@ -327,7 +319,6 @@ class VC():
 
     def combineSharesByIdx(self, indices):
         if(len(indices)<1):
-            print("Improper indices")
             return None
         if(len(indices)==1):
             return self.resImages[indices[0]]

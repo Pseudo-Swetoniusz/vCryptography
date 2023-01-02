@@ -1,14 +1,14 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QTextEdit, QFrame, QSizePolicy, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QWidget, QComboBox, QGroupBox, QFileDialog, QGridLayout
-
 from algorithm.kimages.vc import VC
 from gui import MainMenuWindow
-
+from gui.ErrorMessage import ErrorMessageWindow
 from utils.Image import CImage
 
-def throwCustomError(message):
-    print(message)
+def throwCustomError(widget, title, message):
+    error = ErrorMessageWindow(widget, message, title)
+    error.show()
 
 class KImagesFrame(QFrame):
     def __init__(self, parent: MainMenuWindow):
@@ -79,6 +79,7 @@ class MainFrame(QFrame):
 class ImagesWidget(QWidget):
     def __init__(self, parent: KImagesFrame):
         super().__init__(parent)
+        self.parent = parent
         self.original = None
         self.result = None
         self.resultImage = None
@@ -134,11 +135,11 @@ class ImagesWidget(QWidget):
         file_name = QFileDialog.getSaveFileName(self, 'Open File', '',
                                                 "image Files (*.png)")
         if file_name[0] == '':
-            throwCustomError('error - path empty')
+            throwCustomError(self.parent, 'error', 'No path selected')
         elif file_name:
             self.resultImage.save_image(file_name[0])
         else:
-            throwCustomError('error saving image')
+            throwCustomError(self, 'error', 'error saving image')
 
 class MenuWidget(QWidget):
     def __init__(self, parent: KImagesFrame):
@@ -177,7 +178,7 @@ class MenuWidget(QWidget):
         self.variableInput.setMinimumHeight(int(2.2*height))
         self.textInputLabel = QLabel("Input", self)
         self.textInputLabel.setAlignment(Qt.AlignCenter)
-        self.textInputLabel.setStyleSheet("background-color:#3a3a3a;border:none;font-size:15; letter-spacing:1px;") #yellow
+        self.textInputLabel.setStyleSheet("background-color:#3a3a3a; border:none; font-size:15; letter-spacing:1px;")
         self.textInputLabel.setMinimumHeight(height)
         self.textInputLabel.setMaximumHeight(height)
         self.imageButton = QPushButton(self)
@@ -219,12 +220,12 @@ class MenuWidget(QWidget):
         options |= QFileDialog.DontUseNativeDialog
         file_name = QFileDialog.getOpenFileName(self, 'Open File', '', "image Files (*.png)")
         if file_name[0] == '':
-            throwCustomError('filename error')
+            throwCustomError(self, 'Error', 'No image selected')
         elif file_name:
             self.path = file_name[0]
             self.parent.setImage(file_name[0])
         else:
-            throwCustomError('load image error')
+            throwCustomError('No image to save')
 
     def run(self):
         try:
@@ -242,7 +243,7 @@ class MenuWidget(QWidget):
             self.vc = VC(k,n,mode)
             path = self.parent.getOriginalPath()
             if(path == None):
-                throwCustomError("Image not selected!")
+                throwCustomError(self, 'error', "Image not selected!")
                 self.clearResult("Image not selected!")
                 self.clearShares("", "")
                 return
@@ -250,11 +251,10 @@ class MenuWidget(QWidget):
             img.read_image(path)
             self.shares = self.vc(img)
             self.decryptedImg = self.vc.combineShares()
-            # self.parent.setResult(self.decryptedImg.get_pixmap())
             self.parent.setResult(self.decryptedImg)
             self.prepareShares()
         except:
-            throwCustomError("Algorithm error")
+            throwCustomError(self, 'Error', "Algorithm error")
             self.clearResult("Algorithm error")
             self.clearShares("", "")
     
@@ -288,9 +288,9 @@ class MenuWidget(QWidget):
             self.setShare()
             self.shareWidget.setLabel(self.shareIndex)
         except ZeroDivisionError:
-            throwCustomError("No shares to show!")
+            throwCustomError(self, 'Error', "No shares to show!")
         except:
-            throwCustomError("Next share error")
+            throwCustomError(self, 'Error', "Next share error")
 
     def setNext(self):
         try:
@@ -298,9 +298,9 @@ class MenuWidget(QWidget):
             self.setShare()
             self.shareWidget.setLabel(self.shareIndex)
         except ZeroDivisionError:
-            throwCustomError("No shares to show!")
+            throwCustomError(self, 'Error', "No shares to show!")
         except:
-            throwCustomError("Next share error")
+            throwCustomError(self, 'Error', "Next share error")
 
 
 class VariableInput(QWidget):
@@ -317,7 +317,6 @@ class VariableInput(QWidget):
 
     def initUI(self):
         self.setMinimumWidth(600)
-        self.setStyleSheet("background:##008080; border: 1px solid #323232;")
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignTop)
@@ -374,7 +373,6 @@ class CombineWidget(QWidget):
 
     def initUI(self):
         self.setMinimumWidth(600)
-        self.setStyleSheet("background:##008080; border: 3px solid #323232;")
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignTop)
@@ -407,21 +405,23 @@ class CombineWidget(QWidget):
             variableString = self.idxInput.toPlainText()
             indices = list(map(int, variableString.split(' ')))
         except:
-            throwCustomError("failed to get input :(")
+            throwCustomError(self, 'Error', "Failed to get input")
             return
         try:
             combinedImg = self.parent.vc.combineSharesByIdx(indices)
-            # self.parent.parent.setResult(combinedImg.get_pixmap())
-            self.parent.parent.setResult(combinedImg)
+            if(combinedImg == None):
+                throwCustomError(self, 'Error', "Improper indices")
+            else:
+                self.parent.parent.setResult(combinedImg)
         except:
-            throwCustomError("problem combining")
+            throwCustomError(self, 'Error', "problem combining")
 
     def save(self):
         try:
             img = self.parent.parent.getResultImage()
             self.parent.parent.saveResultImage()
         except:
-            throwCustomError("Error saving image")
+            throwCustomError(self, 'Error', "Error saving image")
 
 
 class ShareWidget(QWidget):

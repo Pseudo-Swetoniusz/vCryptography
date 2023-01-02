@@ -44,7 +44,7 @@ class ButtonFrame(QWidget):
 
     def initUI(self):
         layout = QHBoxLayout()
-        button_kimages = QPushButton("k_images")
+        button_kimages = QPushButton("Visual Cryptography")
         button_kimages.setMinimumHeight(60)
         button_kimages.setMaximumHeight(100)
         button_kimages.setStyleSheet("QPushButton {color:#9d9d9d; letter-spacing:1px; background:#414141; "
